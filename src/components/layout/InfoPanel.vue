@@ -1,67 +1,86 @@
 <template>
   <div class="info-panel">
-    <div class="info-grid">
-      <div class="info-card">
-        <h4>探索流程</h4>
-        <p>输入主题 → 生成核心节点 → 点击节点拓展相关概念，逐层构建知识网络。</p>
-      </div>
-      <div class="info-card">
-        <h4>操作技巧</h4>
-        <ul>
-          <li>拖拽节点自定义布局，滚轮或触控缩放画板</li>
-          <li>按住右键/中键或空格+左键即可平移视图</li>
-          <li>悬停节点可预览详情</li>
-        </ul>
-      </div>
-      <div class="info-card">
-        <h4>灵感提示</h4>
-        <p>尝试为每个分支添加补充描述，或通过钉住的卡片对比不同概念，打造自己的学习路径。</p>
-      </div>
-    </div>
+    <n-grid cols="3" :x-gap="20" :y-gap="20">
+      <n-grid-item>
+        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
+          <template #header>
+            <h4 class="card-title">探索流程</h4>
+          </template>
+          <p class="card-content">
+            输入主题 → 生成核心节点 → 点击节点拓展相关概念，逐层构建知识网络。
+          </p>
+        </n-card>
+      </n-grid-item>
+      <n-grid-item>
+        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
+          <template #header>
+            <h4 class="card-title">操作技巧</h4>
+          </template>
+          <ul class="card-content">
+            <li>拖拽节点自定义布局，滚轮或触控缩放画板</li>
+            <li>按住右键/中键或空格+左键即可平移视图</li>
+            <li>悬停节点可预览详情</li>
+          </ul>
+        </n-card>
+      </n-grid-item>
+      <n-grid-item>
+        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
+          <template #header>
+            <h4 class="card-title">灵感提示</h4>
+          </template>
+          <p class="card-content">
+            尝试为每个分支添加补充描述，或通过钉住的卡片对比不同概念，打造自己的学习路径。
+          </p>
+        </n-card>
+      </n-grid-item>
+    </n-grid>
   </div>
 </template>
 
 <script setup>
-// 不需要任何逻辑，纯展示组件
+import { NCard, NGrid, NGridItem } from 'naive-ui'
 </script>
 
 <style scoped>
 .info-panel {
-  background-color: white;
-  padding: 20px 30px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  background-color: var(--card-bg);
+  padding: 24px 40px;
+  box-shadow: 0 -1px 0 var(--border-color);
+  border-top: 1px solid var(--border-color);
 }
 
 .info-card {
-  padding: 15px;
-  background-color: #f7fafc;
-  border-radius: 8px;
+  transition: all 0.3s ease;
+  background-color: var(--bg-color) !important;
 }
 
-.info-card h4 {
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--primary-color) !important;
+}
+.card-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+.card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 10px;
+  margin-left: 0;
+  color: var(--text-primary);
 }
 
-.info-card p, .info-card ul {
-  font-size: 13px;
-  color: #718096;
-  line-height: 1.6;
+:deep(.n-card-header) {
+  padding-bottom: 10px;
 }
 
-.info-card ul {
-  padding-left: 20px;
+:deep(.n-card-body) {
+  padding-top: 0;
+  padding-bottom: 12px;
 }
 
-.info-card li {
+:deep(.n-typography-list-item) {
   margin-bottom: 5px;
 }
 </style>

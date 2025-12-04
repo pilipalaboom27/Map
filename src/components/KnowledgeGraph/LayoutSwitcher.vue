@@ -1,6 +1,5 @@
 <template>
   <div class="layout-switcher">
-    <div class="switcher-label">布局:</div>
     <button 
       v-for="layout in layouts" 
       :key="layout.name"
@@ -24,25 +23,21 @@ const layouts = [
   { 
     name: 'radial', 
     label: '径向', 
-    icon: '🎯',
     description: '聚焦节点在中心，子节点圆形分布'
   },
   { 
     name: 'hierarchical', 
     label: '层次', 
-    icon: '🌳',
     description: '层级化布局，清晰展示父子关系' 
   },
   { 
     name: 'force', 
     label: '力导向', 
-    icon: '⚡',
     description: '节点自动分散，关系决定距离' 
   },
   { 
     name: 'circular', 
     label: '环形', 
-    icon: '⭕',
     description: '节点环形排列' 
   }
 ]
@@ -59,45 +54,48 @@ const switchLayout = (name) => {
 .layout-switcher {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border-radius: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .switcher-label {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
-  color: #fff;
   margin-right: 4px;
 }
 
 .layout-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid transparent;
-  border-radius: 8px;
-  color: #fff;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-color);
+  border-radius: 0;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  text-align: center;
 }
 
 .layout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .layout-btn.active {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+  box-shadow: var(--shadow-md);
 }
 
 .layout-icon {

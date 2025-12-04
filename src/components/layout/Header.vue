@@ -11,15 +11,50 @@
     </div>
     <div class="controls">
       <LayoutSwitcher />
-      <input 
-        type="text" 
-        id="topicInput" 
-        placeholder="输入要学习的主题（如：SVM）"
-        v-model="newTopic"
-        @keyup.enter="addTopic"
+      <div class="input-control-group">
+        <n-input 
+          v-model:value="newTopic" 
+          placeholder="输入要学习的主题（如：SVM）"
+          @keyup.enter="addTopic"
+          size="medium"
+          :round="false"
+          :bordered="false"
+          :style="{
+            backgroundColor: 'var(--input-bg)',
+            borderRadius: '0',
+            color: 'var(--text-primary)'
+          }"
+        />
+        <n-button 
+          type="primary" 
+          @click="addTopic" 
+          :round="false"
+          :bordered="false"
+          :style="{
+            height: '40px',
+            backgroundColor: 'var(--primary-color)',
+            border: '1px solid var(--primary-color)',
+            borderRadius: '0',
+            color: '#fff'
+          }"
+        >
+          添加主题
+        </n-button>
+      </div>
+      <n-button 
+        type="error" 
+        @click="clearCanvas" 
+        :round="false"
+        :bordered="false"
+        :style="{
+          height: '40px',
+          backgroundColor: 'transparent',
+          borderRadius: '0',
+          color: 'var(--error-color)'
+        }"
       >
-      <button id="addTopicBtn" type="button" @click="addTopic">添加主题</button>
-      <button id="clearBtn" type="button" @click="clearCanvas">清空画板</button>
+        清空画板
+      </n-button>
     </div>
   </header>
 </template>
@@ -27,6 +62,7 @@
 <script setup>
 import { ref } from 'vue'
 import LayoutSwitcher from '../KnowledgeGraph/LayoutSwitcher.vue'
+import { NInput, NButton, NInputGroup } from 'naive-ui'
 
 const emit = defineEmits(['add-topic', 'clear-canvas'])
 
@@ -50,29 +86,34 @@ const clearCanvas = () => {
 
 <style scoped>
 .header {
-  background-color: white;
-  padding: 20px 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--card-bg);
+  padding: 24px 40px;
+  box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .title-block {
+  
   flex: 1;
+  min-width: 300px;
 }
 
 .title-block h1 {
+  font-family: var(--font-family);
   font-size: 28px;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #718096;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -84,57 +125,67 @@ const clearCanvas = () => {
 .status-tags span {
   font-size: 12px;
   padding: 4px 12px;
-  background-color: #e2e8f0;
-  color: #4a5568;
-  border-radius: 12px;
+  background-color: transparent;
+  color: var(--text-primary);
+  border-radius: 0;
+  background-color: rgb(41, 41, 41);
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .controls {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.controls input {
-  padding: 10px 15px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  width: 250px;
-  outline: none;
-  transition: border-color 0.2s;
+.input-control-group {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-color);
+  border-radius: 0;
+  overflow: hidden;
 }
 
-.controls input:focus {
-  border-color: #667eea;
-}
-
-.controls button {
-  padding: 10px 20px;
+.input-control-group :deep(.n-input-wrapper) {
+  height: 40px;
+  border-radius: 0;
+  background: transparent;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-#addTopicBtn {
-  background-color: #667eea;
-  color: white;
+.input-control-group :deep(.n-input__input-el) {
+  height: 40px;
+  background: transparent;
+  color: var(--text-primary);
 }
 
-#addTopicBtn:hover {
-  background-color: #5a67d8;
+.input-control-group :deep(.n-input__input-el::placeholder) {
+  height: 40px;
+  color: var(--text-muted);
 }
 
-#clearBtn {
-  background-color: #f56565;
-  color: white;
-}
-
-#clearBtn:hover {
-  background-color: #e53e3e;
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .title-block {
+    width: 100%;
+    text-align: center;
+  }
 }
 </style>

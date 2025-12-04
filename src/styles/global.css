@@ -57,7 +57,7 @@ input:focus,
 textarea:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* 通用卡片样式 */
@@ -120,7 +120,7 @@ a {
 }
 
 a:hover {
-  color: #5a67d8;
+  color: var(--secondary-color);
   text-decoration: underline;
 }
 

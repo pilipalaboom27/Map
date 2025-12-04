@@ -12,17 +12,7 @@ export const useGraphStore = defineStore('graph', () => {
   const focusedNode = ref(null)
   const layoutType = ref('radial')
   
-  // 颜色配置
-  const colorPalette = [
-    '#8b5cf6', // 紫色
-    '#3b82f6', // 蓝色
-    '#10b981', // 绿色
-    '#f59e0b', // 橙色
-    '#ef4444', // 红色
-    '#ec4899', // 粉色
-    '#6366f1', // 靛蓝
-    '#14b8a6'  // 青色
-  ]
+  // 颜色配置 - 使用CSS变量
   let colorIndex = 0
   const levelColors = {}
 
@@ -129,7 +119,6 @@ export const useGraphStore = defineStore('graph', () => {
       y: undefined,
       width: nodeSize.width,
       height: nodeSize.height,
-      color: getColorForLevel(level),
       knowledge: null,
       expanding: false,
       expanded: false
@@ -157,8 +146,7 @@ export const useGraphStore = defineStore('graph', () => {
       from,
       to,
       type,
-      color: '#10b981',
-      width: 4,
+      width: 1.5,
       arrow: true
     }
 

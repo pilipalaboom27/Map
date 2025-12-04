@@ -9,11 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vicons/material": "^0.13.0",
     "@vueuse/core": "^14.1.0",
-    "d3": "^7.9.0",
+    "echarts": "^6.0.0",
+    "graphology": "^0.26.0",
+    "graphology-layout-forceatlas2": "^0.10.1",
     "gsap": "^3.13.0",
+    "naive-ui": "^2.43.2",
     "nanoid": "^5.1.6",
     "pinia": "^3.0.4",
+    "sigma": "^3.0.2",
     "vue": "^3.5.13"
   },
   "devDependencies": {

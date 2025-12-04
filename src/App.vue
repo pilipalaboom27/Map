@@ -18,6 +18,39 @@
       <div class="loading-spinner"></div>
       <p>正在生成知识...</p>
     </div>
+    
+    <!-- 实体编辑器 -->
+    <EntityEditor 
+      v-model:show="showEntityEditor"
+      :entity="currentEditingEntity"
+      @save="handleEntitySave"
+    />
+
+    <!-- 调试面板：显示当前节点信息，方便排查“看不到主题”的问题 -->
+    <div v-if="DEBUG" class="debug-panel">
+      <div class="debug-header">
+        <span>调试面板（开发用）</span>
+        <span>总节点: {{ store.nodes.length }}，可见节点: {{ store.visibleNodes.length }}</span>
+      </div>
+      <div class="debug-content">
+        <div class="debug-section">
+          <strong>所有节点：</strong>
+          <ul>
+            <li v-for="n in store.nodes" :key="n.id">
+              {{ n.topic }}（level: {{ n.level }}, id: {{ n.id }}）
+            </li>
+          </ul>
+        </div>
+        <div class="debug-section">
+          <strong>可见节点：</strong>
+          <ul>
+            <li v-for="n in store.visibleNodes" :key="n.id">
+              {{ n.topic }}（level: {{ n.level }}, id: {{ n.id }}）
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -26,13 +59,17 @@ import { ref } from 'vue'
 import Header from './components/layout/Header.vue'
 import GraphCanvas from './components/KnowledgeGraph/GraphCanvas.vue'
 import InfoPanel from './components/layout/InfoPanel.vue'
+import EntityEditor from './components/EntityEditor.vue'
 import { useGraphStore } from './stores/graphStore'
 import { fetchKnowledge } from './services/api'
 
 const store = useGraphStore()
+const DEBUG = true
 
 const graphCanvas = ref(null)
 const loading = ref(false)
+const showEntityEditor = ref(false)
+const currentEditingEntity = ref(null)
 
 /**
  * 添加主题节点
@@ -41,6 +78,7 @@ const addTopic = (topic) => {
   const node = store.addNode(topic)
   store.setFocusedNode(node)
   console.log('✅ 添加主题:', topic)
+  console.log('📊 当前节点数:', store.nodes.length, '可见节点数:', store.visibleNodes.length)
 }
 
 /**
@@ -136,6 +174,40 @@ const handleNodeExpand = async (node) => {
     loading.value = false
   }
 }
+
+/**
+ * 处理实体保存
+ */
+const handleEntitySave = (entityData) => {
+  let nodeId = entityData.id
+  
+  if (entityData.id) {
+    // 更新现有实体
+    store.updateNode(entityData.id, {
+      topic: entityData.name,
+      description: entityData.description,
+      type: entityData.type
+    })
+    console.log('✅ 更新实体:', entityData.name)
+  } else {
+    // 创建新实体
+    const node = store.addNode(entityData.name, null, entityData.description)
+    store.setFocusedNode(node)
+    nodeId = node.id
+    console.log('✅ 创建实体:', entityData.name)
+  }
+  
+  // 处理相关实体关系
+  if (entityData.relatedEntities && entityData.relatedEntities.length > 0) {
+    entityData.relatedEntities.forEach(relatedId => {
+      store.addEdge(nodeId, relatedId)
+    })
+  }
+  
+  // 关闭编辑器
+  showEntityEditor.value = false
+  currentEditingEntity.value = null
+}
 </script>
 
 <style scoped>
@@ -144,14 +216,14 @@ const handleNodeExpand = async (node) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f5f7fa;
+  background-color: var(--bg-color);
 }
 
 .canvas-container {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background-color: #f7fafc;
+  background-color: var(--canvas-bg);
 }
 
 .loading-overlay {
@@ -165,7 +237,7 @@ const handleNodeExpand = async (node) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-index-overlay);
   color: white;
 }
 
@@ -178,13 +250,56 @@ const handleNodeExpand = async (node) => {
   height: 50px;
   border: 5px solid rgba(255, 255, 255, 0.3);
   border-top: 5px solid white;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
 }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.debug-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  max-width: 420px;
+  max-height: 40vh;
+  overflow: auto;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  border: 1px solid #4b5563;
+  padding: 8px 12px;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.debug-content {
+  display: flex;
+  gap: 12px;
+}
+
+.debug-section {
+  flex: 1;
+}
+
+.debug-section ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.debug-section li {
+  line-height: 1.4;
+  word-break: break-all;
 }
 </style>
