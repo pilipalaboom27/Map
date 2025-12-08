@@ -1,7 +1,8 @@
 {
   "name": "knowledge-map",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "交互式知识探索画板（Vue 3 + Vite）",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,5 +25,9 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
     "vite": "^6.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
