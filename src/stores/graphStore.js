@@ -8,7 +8,6 @@ import { nanoid } from 'nanoid'
 export const useGraphStore = defineStore('graph', () => {
   // ========== State ==========
   const nodes = ref([])
-  const edges = ref([])
   const focusedNode = ref(null)
   const layoutType = ref('radial')
   
@@ -29,7 +28,7 @@ export const useGraphStore = defineStore('graph', () => {
   // ========== Getters ==========
   
   /**
-   * 获取可见节点（聚焦节点 + 父节点 + 子节点）
+   * 获取可见节点（聚焦节点 + 所有祖先节点 + 直接子节点）
    */
   const visibleNodes = computed(() => {
     if (!focusedNode.value) {
@@ -43,25 +42,15 @@ export const useGraphStore = defineStore('graph', () => {
     // 添加聚焦节点
     visible.push(focusedNode.value)
 
-    // 添加父节点
-    if (focusedNode.value.parentId) {
-      const parent = nodes.value.find(n => n.id === focusedNode.value.parentId)
-      if (parent) visible.push(parent)
-    }
+    // 添加所有祖先节点
+    const ancestors = getAllAncestors(focusedId)
+    visible.push(...ancestors)
 
-    // 添加所有子节点
-    const children = nodes.value.filter(n => n.parentId === focusedId)
-    visible.push(...children)
+    // 只添加直接子节点，不递归
+    const directChildren = nodes.value.filter(n => n.parentId === focusedId)
+    visible.push(...directChildren)
 
     return visible.filter(Boolean)
-  })
-
-  /**
-   * 获取可见边
-   */
-  const visibleEdges = computed(() => {
-    const visibleIds = new Set(visibleNodes.value.map(n => n.id))
-    return edges.value.filter(e => visibleIds.has(e.from) && visibleIds.has(e.to))
   })
 
   /**
@@ -109,6 +98,47 @@ export const useGraphStore = defineStore('graph', () => {
   }
 
   /**
+   * 获取相关节点ID（用于显示控制）
+   */
+  function getRelatedNodeIds(focusNode) {
+    if (!focusNode) return nodes.value.map(node => node.id)
+    
+    const relatedNodes = new Set()
+    
+    relatedNodes.add(focusNode.id)
+    
+    // 添加所有祖先节点
+    let parent = focusNode.parentId ? getNodeById(focusNode.parentId) : null
+    while (parent) {
+      relatedNodes.add(parent.id)
+      parent = parent.parentId ? getNodeById(parent.parentId) : null
+    }
+    
+    // 添加直接子节点
+    const children = nodes.value.filter(node => node.parentId === focusNode.id)
+    children.forEach(child => relatedNodes.add(child.id))
+    
+    return Array.from(relatedNodes)
+  }
+
+  /**
+   * 统一处理节点点击
+   * @param {Object} node - 点击的节点
+   * @param {Function} expandCallback - 展开节点的回调函数（可选）
+   */
+  function handleNodeClick(node, expandCallback) {
+    if (focusedNode.value && node.id === focusedNode.value.id) {
+      // 如果点击的是当前聚焦节点，尝试展开
+      if (expandCallback) {
+        expandCallback(node)
+      }
+    } else {
+      // 否则聚焦节点
+      setFocusedNode(node)
+    }
+  }
+
+  /**
    * 添加节点
    * @param {string} topic - 节点主题
    * @param {string|null} parentId - 父节点ID
@@ -136,34 +166,8 @@ export const useGraphStore = defineStore('graph', () => {
     }
 
     nodes.value.push(node)
-    
-    // 如果有父节点，自动创建边
-    if (parentId) {
-      addEdge(parentId, node.id)
-    }
 
     return node
-  }
-
-  /**
-   * 添加边
-   * @param {string} from - 起始节点ID
-   * @param {string} to - 目标节点ID
-   * @param {string} type - 边类型
-   */
-  function addEdge(from, to, type = 'default') {
-    const edge = {
-      id: nanoid(),
-      from,
-      to,
-      type,
-      color: '#10b981',
-      width: 4,
-      arrow: true
-    }
-
-    edges.value.push(edge)
-    return edge
   }
 
   /**
@@ -211,9 +215,6 @@ export const useGraphStore = defineStore('graph', () => {
     const children = nodes.value.filter(n => n.parentId === id)
     children.forEach(child => deleteNode(child.id))
 
-    // 删除相关的边
-    edges.value = edges.value.filter(e => e.from !== id && e.to !== id)
-
     // 删除节点
     nodes.value = nodes.value.filter(n => n.id !== id)
 
@@ -224,11 +225,10 @@ export const useGraphStore = defineStore('graph', () => {
   }
 
   /**
-   * 清空所有节点和边
+   * 清空所有节点
    */
   function clearAll() {
     nodes.value = []
-    edges.value = []
     focusedNode.value = null
     colorIndex = 0
     Object.keys(levelColors).forEach(key => delete levelColors[key])
@@ -275,18 +275,15 @@ export const useGraphStore = defineStore('graph', () => {
   return {
     // State
     nodes,
-    edges,
     focusedNode,
     layoutType,
 
     // Getters
     visibleNodes,
-    visibleEdges,
     rootNodes,
 
     // Actions
     addNode,
-    addEdge,
     setFocusedNode,
     switchLayout,
     getNodeById,
@@ -294,7 +291,9 @@ export const useGraphStore = defineStore('graph', () => {
     deleteNode,
     clearAll,
     getAllDescendants,
-    getAllAncestors
+    getAllAncestors,
+    getRelatedNodeIds,
+    handleNodeClick
   }
 })
 

@@ -25,39 +25,18 @@ class PromptService:
                         for c in existing_knowledge['concepts']]
                 explored = '、'.join(names[:3])
             
-            avoid = f"\n❌ 避免重复这些内容：{explored}" if explored else ""
+            avoid = f"\n避免重复：{explored}" if explored else ""
             
             prompt = (
-                f"你是知识分解专家。分析「{topic}」需要哪些基础知识。路径：{path_chain}\n\n"
-                "严格按以下JSON格式返回（只输出JSON，无其他文字）：\n\n"
-                
-                "✅ 正确示例1（机器学习）：\n"
-                '{"topic":"机器学习","summary":"机器学习是人工智能的核心分支...","concepts":['
-                '{"name":"监督学习","description":"基于标注数据训练模型","status":"ongoing"},'
-                '{"name":"无监督学习","description":"从无标注数据发现模式","status":"ongoing"},'
-                '{"name":"特征工程","description":"数据预处理和特征提取","status":"ongoing"}'
-                '],"notes":"这些是机器学习的核心基础"}\n\n'
-                
-                "✅ 正确示例2（支持向量机）：\n"
-                '{"topic":"支持向量机","summary":"SVM是一种监督学习算法...","concepts":['
-                '{"name":"最大间隔","description":"寻找最优分类超平面","status":"ongoing"},'
-                '{"name":"核函数","description":"将数据映射到高维空间","status":"ongoing"},'
-                '{"name":"拉格朗日乘子法","description":"求解优化问题的方法","status":"ongoing"}'
-                '],"notes":"这些是SVM的理论基础"}\n\n'
-                
-                '❌ 错误示例（绝对禁止）：\n'
-                '{"topic":"topic","summary":"summary","concepts":['
-                '{"name":"name","description":"description","status":"ongoing"},'
-                '{"name":"概念1","description":"说明1","status":"ongoing"}'
-                ']}\n'
-                '↑ 不要使用\"name\"、\"topic\"、\"概念1\"等占位词！\n\n'
-                
-                f"现在请为「{topic}」生成3-6个实际基础知识点：\n"
-                f"- name字段：填写具体知识点名称（如「线性代数」「梯度下降」）\n"
-                f"- description字段：用一句话说明该知识点的作用\n"
-                f"- 如果「{topic}」已经是最基础概念，返回空数组：'concepts':[]"
-                f"{avoid}\n\n"
-                "记住：name必须是真实知识点，不要用字段名！只输出JSON，不要markdown标记。"
+                f"你是知识层级拆解专家。分析「{topic}」(路径：{path_chain})，将其向下拆解为更基础的知识点，形成层级关系。\n"
+                "严格按以下JSON格式返回，只输出JSON：\n"
+                '{"topic":"主题名","summary":"主题简述（20字内）","concepts":[{"name":"知识点名","description":"一句话说明作用","status":"ongoing"}],"notes":"备注"}'
+                f"\n\n要求：\n"
+                f"1. 生成3-6个直接相关的基础知识概念\n"
+                f"2. 从高等级知识逐步拆解到更基础的知识\n"
+                f"3. name必须是具体知识点，拒绝占位词\n"
+                f"4. 若{topic}已是最基础概念，concepts返回空数组{avoid}\n"
+                "只输出JSON，无其他内容。"
             )
             
             logger.debug(f"Generated knowledge prompt for topic: {topic}")

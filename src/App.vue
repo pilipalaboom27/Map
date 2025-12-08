@@ -10,6 +10,10 @@
         ref="graphCanvas"
         @node-click="handleNodeClick"
       />
+      <ControlPanel 
+        @fit-to-view="handleFitToView"
+        @reset-view="handleResetView"
+      />
     </div>
     
     <InfoPanel />
@@ -26,6 +30,7 @@ import { ref } from 'vue'
 import Header from './components/layout/Header.vue'
 import GraphCanvas from './components/KnowledgeGraph/GraphCanvas.vue'
 import InfoPanel from './components/layout/InfoPanel.vue'
+import ControlPanel from './components/KnowledgeGraph/ControlPanel.vue'
 import { useGraphStore } from './stores/graphStore'
 import { fetchKnowledge } from './services/api'
 
@@ -52,17 +57,30 @@ const clearCanvas = () => {
 }
 
 /**
+ * 自适应缩放视图
+ */
+const handleFitToView = () => {
+  if (graphCanvas.value) {
+    graphCanvas.value.fitToView()
+    console.log('🔍 自适应缩放视图')
+  }
+}
+
+/**
+ * 重置视图
+ */
+const handleResetView = () => {
+  if (graphCanvas.value) {
+    graphCanvas.value.resetView()
+    console.log('🔄 重置视图')
+  }
+}
+
+/**
  * 处理节点点击
  */
 const handleNodeClick = (node) => {
-  if (store.focusedNode && node.id === store.focusedNode.id) {
-    // 如果点击的是当前聚焦节点，展开节点
-    handleNodeExpand(node)
-  } else {
-    // 否则聚焦节点
-    store.setFocusedNode(node)
-    console.log('🎯 聚焦节点:', node.topic)
-  }
+  store.handleNodeClick(node, handleNodeExpand)
 }
 
 /**

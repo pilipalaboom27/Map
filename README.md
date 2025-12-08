@@ -19,7 +19,12 @@
 - Vue 3.5 - 渐进式JavaScript框架
 - D3.js 7.9 - 数据驱动的文档可视化库
 - Vite 6.0 - 下一代前端构建工具
-- CSS变量 - 主题样式管理
+- Tailwind CSS - 实用优先的CSS框架
+- Element Plus - Vue 3组件库
+- Pinia - 状态管理
+- GSAP - 动画库
+- Three.js - 3D图形库
+- VueUse - Vue组合式API工具集
 
 ### 后端
 - Python 3.7+
@@ -34,32 +39,36 @@
 map/
 ├── src/                      # 前端源代码
 │   ├── components/           # Vue组件
-│   │   ├── canvas/          # 画布相关组件
-│   │   ├── common/          # 通用组件
-│   │   └── layout/          # 布局组件
-│   ├── services/            # 服务层
-│   │   ├── api/             # API服务
-│   │   ├── node/            # 节点管理服务
-│   │   └── env.js           # 环境配置管理
-│   ├── store/               # 状态管理
-│   │   ├── mapStore.js      # 地图状态管理
-│   │   └── configStore.js   # 配置状态管理
-│   ├── styles/              # 样式文件
-│   │   ├── variables.css    # CSS变量
-│   │   └── global.css       # 全局样式
-│   ├── types/               # 类型定义
-│   ├── utils/               # 工具函数
-│   ├── App.vue              # 根组件
-│   └── main.js              # 入口文件
-├── server.py                # Python Flask后端服务器
+│   ├── core/                 # 核心功能模块
+│   ├── services/             # 服务层
+│   ├── store/                # 状态管理
+│   ├── stores/               # Pinia状态管理
+│   ├── styles/               # 样式文件
+│   ├── types/                # 类型定义
+│   ├── utils/                # 工具函数
+│   ├── App.vue               # 根组件
+│   └── main.js               # 入口文件
+├── backend/                  # Python后端服务
+│   ├── __init__.py          # 后端包初始化
+│   └── app/                 # Flask应用
+│       ├── __init__.py      # 应用初始化
+│       ├── config.py        # 配置文件
+│       ├── controllers/     # 控制器
+│       ├── routes/          # 路由
+│       ├── services/        # 后端服务
+│       └── utils/           # 工具函数
+├── server.py                # 后端服务入口
 ├── requirements.txt         # Python依赖
-├── .env                    # 环境变量（包含API密钥，不提交到Git）
-├── index.html              # 前端主页面
-├── package.json            # Node.js依赖
-├── vite.config.js          # Vite配置
-├── test-runner.js          # 测试运行器
-├── tests/                  # 测试文件
-└── README.md               # 说明文档
+├── .env                     # 环境变量（包含API密钥，不提交到Git）
+├── .env.example             # 环境变量示例
+├── index.html               # 前端主页面
+├── package.json             # Node.js依赖
+├── vite.config.js           # Vite配置
+├── tailwind.config.js       # Tailwind CSS配置
+├── postcss.config.js        # PostCSS配置
+├── TESTING.md               # 测试文档
+├── logs/                    # 日志目录
+└── README.md                # 说明文档
 ```
 
 ## 快速开始
@@ -161,45 +170,37 @@ const API_CONFIG = {
 
 ## 开发指南
 
-### 组件开发
+### 前端架构
 
-组件分为三个主要类别：
+- **components/**：Vue组件，包含UI组件和功能组件
+- **core/**：核心功能模块，处理画布渲染和交互逻辑
+- **services/**：服务层，处理API请求和业务逻辑
+- **store/ & stores/**：状态管理，使用Pinia管理应用状态
+- **styles/**：样式文件，基于Tailwind CSS
+- **types/**：TypeScript类型定义
+- **utils/**：工具函数库
 
-- **canvas/**：画布相关组件，负责渲染和交互
-- **common/**：通用组件，如信息卡片、缩放控件等
-- **layout/**：布局组件，如头部、信息面板等
+### 后端架构
+
+- **controllers/**：处理HTTP请求和响应
+- **routes/**：定义API路由
+- **services/**：后端业务逻辑，包括API调用和数据处理
+- **utils/**：工具函数，包括错误处理和日志记录
 
 ### 状态管理
 
-应用使用Vue 3的组合式API和响应式系统进行状态管理：
+应用使用Pinia进行状态管理，主要包括：
 
 - **mapStore**：管理地图节点和连接数据
 - **configStore**：管理应用配置
 
-### 服务层
+### 样式管理
 
-服务层负责处理业务逻辑：
-
-- **api/**：处理API请求和响应
-- **node/**：处理节点管理和尺寸计算
-- **env.js**：处理环境变量
-
-### 工具函数
-
-工具函数分为多个模块：
-
-- **string.js**：字符串处理
-- **array.js**：数组处理
-- **object.js**：对象处理
-- **event.js**：事件处理（防抖、节流等）
+应用使用Tailwind CSS进行样式管理，结合CSS变量实现主题定制。
 
 ### 测试
 
-应用包含简单的测试框架，运行测试：
-
-```bash
-npm run test
-```
+应用包含测试文档和相关测试代码，详细信息请参考TESTING.md文件。
 
 ### 构建生产版本
 
@@ -207,7 +208,11 @@ npm run test
 npm run build
 ```
 
-构建后的文件将输出到 `dist/` 目录。
+构建后的文件将输出到 `dist/` 目录。构建完成后，可以通过以下命令启动生产服务器：
+
+```bash
+npm run preview
+```
 
 ## 浏览器支持
 
@@ -220,6 +225,7 @@ npm run build
 
 - 确保Python服务器正在运行（`http://localhost:8000`）
 - API密钥存储在 `.env` 文件中，不要提交到Git仓库
+- 可以参考 `.env.example` 文件创建 `.env` 文件
 - 如果服务器未启动，前端会显示错误提示
 - 节点显示格式为"概念名"，悬停时显示详细信息
 
@@ -228,6 +234,7 @@ npm run build
 ### 服务器无法启动
 - 检查是否安装了所有依赖：`pip install -r requirements.txt`
 - 检查端口8000是否被占用
+- 查看logs/目录下的日志文件
 - 查看控制台错误信息
 
 ### API调用失败

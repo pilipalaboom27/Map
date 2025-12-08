@@ -26,3 +26,4 @@ build/
 # 日志文件
 *.log
 
+node_modules

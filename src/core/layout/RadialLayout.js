@@ -73,15 +73,26 @@ export class RadialLayout {
   }
 
   /**
-   * 计算父节点位置
+   * 计算所有祖先节点位置
    */
   calculateParentPosition(nodes, focusNode, positions, centerX, centerY) {
-    const parent = nodes.find(n => n.id === focusNode.parentId)
-    if (parent) {
+    let currentNode = focusNode
+    let distance = this.options.parentDistance
+    
+    // 递归查找所有祖先节点
+    while (currentNode.parentId) {
+      const parent = nodes.find(n => n.id === currentNode.parentId)
+      if (!parent) break
+      
+      // 将祖先节点放在聚焦节点的正上方
       positions.set(parent.id, {
         x: centerX,
-        y: centerY - this.options.parentDistance
+        y: centerY - distance
       })
+      
+      // 移动到下一个父节点
+      currentNode = parent
+      distance += this.options.parentDistance
     }
   }
 

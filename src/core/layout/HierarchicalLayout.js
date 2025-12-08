@@ -53,16 +53,26 @@ export class HierarchicalLayout {
       const centerLevel = 1
       this.addNodeToLevel(levels, focusNode, centerLevel)
       
-      // 添加父节点（上一层）
-      if (focusNode.parentId) {
-        const parent = nodes.find(n => n.id === focusNode.parentId)
-        if (parent) {
-          this.addNodeToLevel(levels, parent, centerLevel - 1)
-        }
+      // 添加所有祖先节点（上一层及以上）
+      let currentNode = focusNode
+      let currentLevel = centerLevel - 1
+      while (currentNode.parentId) {
+        const parent = nodes.find(n => n.id === currentNode.parentId)
+        if (!parent) break
+        
+        this.addNodeToLevel(levels, parent, currentLevel)
+        
+        // 移动到下一个父节点
+        currentNode = parent
+        currentLevel--
       }
       
-      // 添加子节点（下一层）
-      this.addDescendants(levels, nodes, focusNode.id, centerLevel + 1)
+      // 添加直接子节点（下一层）
+      // 只添加直接子节点，不递归添加所有后代
+      const directChildren = nodes.filter(n => n.parentId === focusNode.id)
+      directChildren.forEach(child => {
+        this.addNodeToLevel(levels, child, centerLevel + 1)
+      })
     }
 
     return levels
