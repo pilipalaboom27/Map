@@ -105,7 +105,8 @@ export const parseJSONConceptResponse = (text, topic) => {
       topic: data.topic || topic,
       concepts: parsedConcepts,
       description: data.notes || '',
-      summary: data.summary || ''
+      summary: data.summary || '',
+      model: data.model || '' // 提取模型信息
     }
   } catch (error) {
     return null

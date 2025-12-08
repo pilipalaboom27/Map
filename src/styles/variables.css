@@ -5,7 +5,7 @@
   --secondary-color: rgb(0, 255, 76);
   --accent-color: rgba(236, 72, 153, 1);
   --highlight-color: rgba(245, 158, 11, 1);
-  --input-bg: #3a3a3a;
+  --input-bg: #272727;
   /* 中性色 - 黑色背景 */
   --bg-color: #000000;
   --canvas-bg: #000000;
@@ -13,6 +13,7 @@
   --text-primary: #ffffff;
   --text-secondary: #ffffff;
   --text-muted: #ffffff;
+  --test-control: #272727;
   
   /* 边框和阴影 - 100%透明度 */
   --border-color: #2e2e2e;

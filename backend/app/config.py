@@ -16,8 +16,16 @@ class Config:
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
     DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', 'https://api.deepseek.com/v1/chat/completions')
     DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
-    DEEPSEEK_TEMPERATURE = float(os.getenv('DEEPSEEK_TEMPERATURE', 0.3))
-    DEEPSEEK_MAX_TOKENS = int(os.getenv('DEEPSEEK_MAX_TOKENS', 1500))
+    DEEPSEEK_TEMPERATURE = float(os.getenv('DEEPSEEK_TEMPERATURE'))
+    DEEPSEEK_MAX_TOKENS = int(os.getenv('DEEPSEEK_MAX_TOKENS'))
+    
+    # Doubao API配置
+    DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY', '')
+    DOUBAO_API_URL = os.getenv('DOUBAO_API_URL', 'https://ark.cn-beijing.volces.com/api/v3')
+    
+    # Qwen API配置
+    QWEN_API_KEY = os.getenv('QWEN_API_KEY', '')
+    QWEN_API_URL = os.getenv('QWEN_API_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
     
     # 日志配置
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

@@ -4,22 +4,48 @@ import { nanoid } from 'nanoid'
 
 /**
  * 图谱状态管理 Store
+ * 
+ * 管理知识图谱的所有状态，包括：
+ * - 节点数据（nodes）
+ * - 边数据（edges）
+ * - 聚焦节点（focusedNode）
+ * - 布局类型（layoutType）
+ * 
+ * @returns {Object} Pinia Store 实例
  */
 export const useGraphStore = defineStore('graph', () => {
   // ========== State ==========
+  
+  /** @type {import('vue').Ref<Node[]>} 节点数组 */
   const nodes = ref([])
+  
+  /** @type {import('vue').Ref<Connection[]>} 边数组 */
   const edges = ref([])
+  
+  /** @type {import('vue').Ref<Node|null>} 当前聚焦的节点 */
   const focusedNode = ref(null)
+  
+  /** @type {import('vue').Ref<LayoutType>} 布局类型 */
   const layoutType = ref('radial')
   
   // 颜色配置 - 使用CSS变量
   let colorIndex = 0
   const levelColors = {}
+  const colorPalette = [
+    'rgb(95, 219, 111)',
+    'rgb(59, 130, 246)',
+    'rgb(168, 85, 247)',
+    'rgb(236, 72, 153)',
+    'rgb(251, 146, 60)',
+    'rgb(34, 197, 94)',
+    'rgb(14, 165, 233)',
+    'rgb(139, 92, 246)'
+  ]
 
   // ========== Getters ==========
   
   /**
-   * 获取可见节点（聚焦节点 + 父节点 + 子节点）
+   * 获取可见节点（聚焦节点 + 所有父节点 + 所有子节点）
    */
   const visibleNodes = computed(() => {
     if (!focusedNode.value) {
@@ -33,10 +59,16 @@ export const useGraphStore = defineStore('graph', () => {
     // 添加聚焦节点
     visible.push(focusedNode.value)
 
-    // 添加父节点
-    if (focusedNode.value.parentId) {
-      const parent = nodes.value.find(n => n.id === focusedNode.value.parentId)
-      if (parent) visible.push(parent)
+    // 添加所有父节点（向上遍历所有祖先节点）
+    let current = focusedNode.value
+    while (current && current.parentId) {
+      const parent = nodes.value.find(n => n.id === current.parentId)
+      if (parent) {
+        visible.push(parent)
+        current = parent
+      } else {
+        break
+      }
     }
 
     // 添加所有子节点
@@ -65,6 +97,8 @@ export const useGraphStore = defineStore('graph', () => {
 
   /**
    * 获取节点颜色（按层级）
+   * @param {number} level - 节点层级
+   * @returns {string} 节点颜色（RGB格式）
    */
   function getColorForLevel(level) {
     if (!levelColors[level]) {
@@ -75,7 +109,9 @@ export const useGraphStore = defineStore('graph', () => {
   }
 
   /**
-   * 计算节点大小
+   * 计算节点大小（基于文本内容）
+   * @param {string} topic - 节点主题文本
+   * @returns {{width: number, height: number}} 节点尺寸
    */
   function calculateNodeSize(topic) {
     const canvas = document.createElement('canvas')
@@ -121,7 +157,9 @@ export const useGraphStore = defineStore('graph', () => {
       height: nodeSize.height,
       knowledge: null,
       expanding: false,
-      expanded: false
+      expanded: false,
+      cachedChildren: null, // 预缓存的子节点数据
+      preloading: false // 是否正在预加载
     }
 
     nodes.value.push(node)

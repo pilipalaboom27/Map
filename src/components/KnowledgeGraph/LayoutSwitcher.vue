@@ -16,8 +16,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useGraphStore } from '@/stores/graphStore'
+import { useLogger } from '@/core/logger.js'
 
 const store = useGraphStore()
+const logger = useLogger('LayoutSwitcher')
 
 const layouts = [
   { 
@@ -29,16 +31,6 @@ const layouts = [
     name: 'hierarchical', 
     label: '层次', 
     description: '层级化布局，清晰展示父子关系' 
-  },
-  { 
-    name: 'force', 
-    label: '力导向', 
-    description: '节点自动分散，关系决定距离' 
-  },
-  { 
-    name: 'circular', 
-    label: '环形', 
-    description: '节点环形排列' 
   }
 ]
 
@@ -46,7 +38,7 @@ const currentLayout = computed(() => store.layoutType)
 
 const switchLayout = (name) => {
   store.switchLayout(name)
-  console.log('🔄 切换布局:', name)
+  logger.debug('切换布局:', name)
 }
 </script>
 
@@ -94,7 +86,7 @@ const switchLayout = (name) => {
 .layout-btn.active {
   background: var(--primary-color);
   border-color: var(--primary-color);
-  color: #fff;
+  color: #000;
   box-shadow: var(--shadow-md);
 }
 

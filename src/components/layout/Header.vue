@@ -35,7 +35,7 @@
             backgroundColor: 'var(--primary-color)',
             border: '1px solid var(--primary-color)',
             borderRadius: '0',
-            color: '#fff'
+            color: 'black'
           }"
         >
           添加主题
@@ -50,7 +50,8 @@
           height: '40px',
           backgroundColor: 'transparent',
           borderRadius: '0',
-          color: 'var(--error-color)'
+          color: 'var(--error-color)',
+          fontWeight: '600'
         }"
       >
         清空画板
@@ -62,7 +63,7 @@
 <script setup>
 import { ref } from 'vue'
 import LayoutSwitcher from '../KnowledgeGraph/LayoutSwitcher.vue'
-import { NInput, NButton, NInputGroup } from 'naive-ui'
+import { NInput, NButton } from 'naive-ui'
 
 const emit = defineEmits(['add-topic', 'clear-canvas'])
 
@@ -82,6 +83,7 @@ const clearCanvas = () => {
     emit('clear-canvas')
   }
 }
+
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@
 const envVars = {
   // API配置
   API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/generate',
-  API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT || 30000,
+  API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT || 60000,
   
   // DeepSeek API配置
   DEEPSEEK_API_KEY: import.meta.env.VITE_DEEPSEEK_API_KEY || '',

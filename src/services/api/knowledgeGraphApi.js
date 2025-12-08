@@ -43,6 +43,8 @@ export class KnowledgeGraphApi {
       
       throw new Error('服务器返回格式错误：缺少content字段')
     } catch (error) {
+      // 使用 logger 需要导入，但为了保持最小改动，这里保留 console.error
+      // 因为这是错误处理，在生产环境中也应该显示
       console.error('生成知识失败:', error)
       throw error
     }

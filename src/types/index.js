@@ -14,6 +14,9 @@
  * @property {number} level - 节点层级
  * @property {Knowledge|null} knowledge - 节点知识数据
  * @property {boolean} expanding - 节点是否正在展开
+ * @property {boolean} expanded - 节点是否已展开
+ * @property {Object|null} cachedChildren - 预缓存的子节点数据
+ * @property {boolean} preloading - 是否正在预加载
  */
 
 /**
@@ -107,6 +110,81 @@
 /**
  * 导入数据类型
  * @typedef {ExportData} ImportData
+ */
+
+/**
+ * 布局类型
+ * @typedef {'radial' | 'hierarchical'} LayoutType
+ */
+
+/**
+ * 图谱服务类型
+ * @typedef {Object} GraphService
+ * @property {Function} addTopic - 添加主题节点
+ * @property {Function} clearCanvas - 清空画布
+ * @property {Function} handleNodeClick - 处理节点点击
+ * @property {Function} updateNode - 更新节点
+ * @property {Function} deleteNode - 删除节点
+ */
+
+/**
+ * 节点操作 Composable 返回类型
+ * @typedef {Object} NodeOperations
+ * @property {import('vue').Ref<boolean>} showEntityEditor - 是否显示实体编辑器
+ * @property {import('vue').Ref<Object|null>} currentEditingEntity - 当前编辑的实体
+ * @property {Function} addTopic - 添加主题
+ * @property {Function} clearCanvas - 清空画布
+ * @property {Function} handleNodeClick - 处理节点点击
+ * @property {Function} handleEntitySave - 处理实体保存
+ * @property {Function} openEntityEditor - 打开实体编辑器
+ * @property {Function} closeEntityEditor - 关闭实体编辑器
+ */
+
+/**
+ * 节点展开 Composable 返回类型
+ * @typedef {Object} NodeExpansion
+ * @property {import('vue').Ref<boolean>} loading - 是否正在加载
+ * @property {Function} expandNode - 展开节点
+ */
+
+/**
+ * 事件管理器类型
+ * @typedef {Object} EventManager
+ * @property {Function} on - 注册事件监听器
+ * @property {Function} off - 移除事件监听器
+ * @property {Function} clearNamespace - 清除命名空间下的所有监听器
+ * @property {Function} clearAll - 清除所有监听器
+ * @property {Function} emit - 触发事件
+ */
+
+/**
+ * 日志系统类型
+ * @typedef {Object} Logger
+ * @property {Function} debug - 调试日志
+ * @property {Function} info - 信息日志
+ * @property {Function} warn - 警告日志
+ * @property {Function} error - 错误日志
+ * @property {Function} setLevel - 设置日志级别
+ * @property {Function} setEnabled - 启用/禁用日志
+ */
+
+/**
+ * D3 布局引擎函数类型
+ * @typedef {Function} LayoutFunction
+ * @param {Node[]} nodes - 节点数组
+ * @param {Node} focusedNode - 聚焦节点
+ * @param {number} width - 画布宽度
+ * @param {number} height - 画布高度
+ * @returns {void}
+ */
+
+/**
+ * D3 渲染器函数类型
+ * @typedef {Function} RenderFunction
+ * @param {Object} g - D3 选择器（容器组）
+ * @param {Array} data - 数据数组
+ * @param {Function} [callback] - 回调函数
+ * @returns {Object} D3 选择器
  */
 
 // 导出类型定义
