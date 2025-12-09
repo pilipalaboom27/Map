@@ -6,8 +6,10 @@
       class="node-tooltip"
       :style="tooltipStyle"
     >
-      <div class="tooltip-title">{{ node.topic }}</div>
-      <div class="tooltip-content">{{ content }}</div>
+      <div class="tooltip-inner">
+        <div class="tooltip-title">{{ node.topic }}</div>
+        <div class="tooltip-content">{{ content }}</div>
+      </div>
     </div>
   </Transition>
 </template>
@@ -108,50 +110,98 @@ watch([() => props.visible, () => props.position], () => {
 <style scoped>
 .node-tooltip {
   position: fixed;
-  max-width: 360px;
-  min-width: 200px;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
+  max-width: 320px;
+  min-width: 220px;
+  padding: 1px; /* 用于边框渐变 */
+  
+  /* Cyber Glass Style */
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(139, 92, 246, 0.3)); /* 边框渐变色 */
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  
   font-size: 13px;
   line-height: 1.6;
   pointer-events: none;
   z-index: 10000;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(95, 219, 111, 0.3);
+  
+  /* 阴影 */
+  box-shadow: 
+    0 0 20px rgba(6, 182, 212, 0.2),
+    0 10px 40px rgba(0, 0, 0, 0.5);
+    
+  /* 独特的切角遮罩 (可选，如果不想太复杂可以去掉 clip-path) */
+  clip-path: polygon(
+    10px 0, 100% 0, 
+    100% calc(100% - 10px), calc(100% - 10px) 100%, 
+    0 100%, 0 10px
+  );
+}
+
+.node-tooltip::before {
+  content: '';
+  position: absolute;
+  inset: 1px; /* 内部背景层，稍微缩小以露出边框 */
+  background: rgba(2, 6, 23, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 7px;
+  z-index: -1;
+  clip-path: polygon(
+    10px 0, 100% 0, 
+    100% calc(100% - 10px), calc(100% - 10px) 100%, 
+    0 100%, 0 10px
+  );
+}
+
+/* 内容容器 */
+.tooltip-inner {
+  padding: 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .tooltip-title {
+  font-family: var(--font-family); /* 使用全局字体 */
   font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 10px;
-  color: rgb(95, 219, 111);
-  border-bottom: 1px solid rgba(95, 219, 111, 0.2);
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--primary-color);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
 }
 
+.tooltip-title::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
 .tooltip-content {
-  color: rgba(255, 255, 255, 0.9);
-  word-wrap: break-word;
-  word-break: break-word;
+  color: #e2e8f0;
+  font-family: system-ui, -apple-system, sans-serif;
+  text-align: justify;
 }
 
 /* 淡入淡出动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-enter-from {
   opacity: 0;
-  transform: translateY(-5px);
+  transform: translateY(10px) scale(0.95);
 }
 
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-5px);
+  transform: translateY(10px) scale(0.95);
 }
 </style>
 

@@ -118,7 +118,26 @@ export function renderNodes(g, nodes, onNodeClick, focusedNode = null, tooltipCa
     .style('cursor', 'pointer')
     .style('user-select', 'none')
     .style('pointer-events', 'all')
-  
+    .attr('opacity', 0) // 初始透明
+
+  // 节点出现动画
+  nodeGroupEnter.transition()
+    .duration(500)
+    .attr('opacity', 1)
+
+  // 1. 添加呼吸光晕 (Glow Ring)
+  nodeGroupEnter
+    .append('circle')
+    .attr('class', 'glow-ring')
+    .attr('r', config.height / 2) // 初始半径
+    .attr('fill', 'transparent')
+    .attr('stroke', colors.node)
+    .attr('stroke-width', 2)
+    .attr('opacity', 0)
+
+  // 2. 添加背景形状（可选，增强文字可读性）
+  // 这里我们只使用文字，但如果需要背景可以在这里加 rect/circle
+
   // 添加文字节点
   nodeGroupEnter
     .append('text')
@@ -169,12 +188,34 @@ export function renderNodes(g, nodes, onNodeClick, focusedNode = null, tooltipCa
   // 节点悬停效果（绑定到节点组）
   nodeGroup.on('mouseenter', function(event, d) {
     const isFocused = d.id === focusedNodeId
-    const textNode = d3.select(this).select('text.node')
-    textNode
+    const group = d3.select(this)
+    
+    // 文字高亮
+    group.select('text.node')
       .attr('fill', colors.textHover)
       .attr('font-size', isFocused 
         ? `${config.fontSizeFocused + 2}px` 
         : `${config.fontSizeHover}px`)
+    
+    // 光晕动画
+    group.select('.glow-ring')
+      .attr('opacity', 0.6)
+      .transition()
+      .duration(300)
+      .attr('r', config.height) // 放大
+      .attr('stroke-opacity', 0) // 渐隐
+      .on('end', function repeat() {
+        // 循环呼吸动画
+        d3.select(this)
+          .attr('r', config.height / 2)
+          .attr('stroke-opacity', 0.6)
+          .transition()
+          .duration(1500)
+          .ease(d3.easeSinInOut)
+          .attr('r', config.height)
+          .attr('stroke-opacity', 0)
+          .on('end', repeat)
+      })
     
     // 触发工具提示显示
     if (tooltipCallbacks.onMouseEnter) {
@@ -191,13 +232,22 @@ export function renderNodes(g, nodes, onNodeClick, focusedNode = null, tooltipCa
 
   nodeGroup.on('mouseleave', function(event, d) {
     const isFocused = d.id === focusedNodeId
-    const textNode = d3.select(this).select('text.node')
-    // 恢复节点颜色（已展开的节点恢复为绿色，未展开的恢复为白色）
-    textNode
+    const group = d3.select(this)
+
+    // 恢复文字
+    group.select('text.node')
       .attr('fill', d.expanded ? colors.textExpanded : colors.text)
       .attr('font-size', isFocused 
         ? `${config.fontSizeFocused}px` 
         : `${config.fontSize}px`)
+    
+    // 停止光晕动画
+    group.select('.glow-ring')
+      .interrupt() // 停止过渡
+      .transition()
+      .duration(200)
+      .attr('opacity', 0)
+      .attr('r', config.height / 2)
     
     // 触发工具提示隐藏
     if (tooltipCallbacks.onMouseLeave) {
@@ -205,6 +255,14 @@ export function renderNodes(g, nodes, onNodeClick, focusedNode = null, tooltipCa
     }
   })
   
+  // 右键菜单
+  nodeGroup.on('contextmenu', function(event, d) {
+    event.preventDefault()
+    if (tooltipCallbacks.onContextMenu) {
+      tooltipCallbacks.onContextMenu(event, d)
+    }
+  })
+
   // 点击事件绑定到节点组
   nodeGroup.on('click', (event, d) => {
     event.stopPropagation()
@@ -294,6 +352,29 @@ export function updateEdgePositions(link, edges, nodes) {
       const target = typeof d.target === 'object' ? d.target : nodes.find(n => n.id === d.target)
       return target?.y || 0
     })
+
+  // 连线生长动画 - 仅对新进入的边有效
+  if (!useTransition) {
+    // 首次渲染时的生长动画
+    link.each(function(d) {
+      if (!d.__animated) {
+        d.__animated = true
+        const length = this.getTotalLength()
+        d3.select(this)
+          .attr('stroke-dasharray', length)
+          .attr('stroke-dashoffset', length)
+          .transition()
+          .duration(800)
+          .ease(d3.easeCubicOut)
+          .attr('stroke-dashoffset', 0)
+          // 动画结束后移除 dasharray 否则会影响后续样式
+          .on('end', function() {
+            d3.select(this).attr('stroke-dasharray', null)
+          })
+      }
+    })
+  }
 }
+
 
 

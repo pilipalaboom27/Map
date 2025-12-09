@@ -18,6 +18,8 @@ import { createRenderer, renderNodes, renderEdges, updateNodePositions, updateEd
 import { createZoomPan, handleResize as handleResizeInteraction } from '@/core/d3/interaction.js'
 import { applyLayout } from '@/core/d3/layoutEngine.js'
 import NodeTooltip from '@/components/common/NodeTooltip.vue'
+import { useKeyboard } from '@/composables/useKeyboard.js'
+import * as d3 from 'd3'
 
 const props = defineProps({
   width: {
@@ -42,7 +44,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['node-click', 'edge-click'])
+const emit = defineEmits(['node-click', 'edge-click', 'node-contextmenu'])
 
 const store = useGraphStore()
 const eventManager = useEventManager()
@@ -61,6 +63,25 @@ let containerHeight = 0
 const showTooltip = ref(false)
 const tooltipNode = ref(null)
 const tooltipPosition = ref({ x: 0, y: 0 })
+
+// 键盘快捷键支持
+useKeyboard({
+  onZoomIn: () => {
+    if (zoom && svg) {
+      zoom.scaleBy(svg.transition().duration(200), 1.2)
+    }
+  },
+  onZoomOut: () => {
+    if (zoom && svg) {
+      zoom.scaleBy(svg.transition().duration(200), 0.8)
+    }
+  },
+  onResetView: () => {
+    if (zoom && svg) {
+      svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity)
+    }
+  }
+})
 
 // 初始化
 onMounted(() => {
@@ -112,7 +133,22 @@ function renderGraph() {
   // 应用布局算法
   const focusedNode = store.focusedNode
   if (focusedNode) {
-    applyLayout(props.layout, props.nodes, focusedNode, containerWidth, containerHeight)
+    applyLayout(
+      props.layout, 
+      props.nodes, 
+      focusedNode, 
+      containerWidth, 
+      containerHeight, 
+      // onTick 回调
+      () => {
+        if (nodeSelection) {
+          updateNodePositions(nodeSelection, props.nodes, containerWidth / 2, containerHeight / 2, focusedNode)
+        }
+        if (linkSelection) {
+          updateEdgePositions(linkSelection, props.edges, props.nodes)
+        }
+      }
+    )
   }
 
   // 渲染连接线
@@ -131,7 +167,6 @@ function renderGraph() {
     focusedNode,
     {
       onMouseEnter: (event, node) => {
-        // 显示工具提示
         const rect = containerRef.value.getBoundingClientRect()
         tooltipPosition.value = {
           x: event.clientX - rect.left,
@@ -141,7 +176,6 @@ function renderGraph() {
         showTooltip.value = true
       },
       onMouseMove: (event, node) => {
-        // 更新工具提示位置
         const rect = containerRef.value.getBoundingClientRect()
         tooltipPosition.value = {
           x: event.clientX - rect.left,
@@ -149,9 +183,11 @@ function renderGraph() {
         }
       },
       onMouseLeave: () => {
-        // 隐藏工具提示
         showTooltip.value = false
         tooltipNode.value = null
+      },
+      onContextMenu: (event, node) => {
+        emit('node-contextmenu', event, node)
       }
     }
   )
@@ -174,14 +210,31 @@ function handleResize() {
   // 重新应用布局
   const focusedNode = store.focusedNode
   if (focusedNode && props.nodes.length > 0) {
-    applyLayout(props.layout, props.nodes, focusedNode, containerWidth, containerHeight)
+    applyLayout(
+      props.layout, 
+      props.nodes, 
+      focusedNode, 
+      containerWidth, 
+      containerHeight,
+      // onTick 回调
+      () => {
+        if (nodeSelection) {
+          updateNodePositions(nodeSelection, props.nodes, containerWidth / 2, containerHeight / 2, focusedNode)
+        }
+        if (linkSelection) {
+          updateEdgePositions(linkSelection, props.edges, props.nodes)
+        }
+      }
+    )
     
-    // 更新位置（传入聚焦节点信息）
-    if (nodeSelection) {
-      updateNodePositions(nodeSelection, props.nodes, containerWidth / 2, containerHeight / 2, focusedNode)
-    }
-    if (linkSelection) {
-      updateEdgePositions(linkSelection, props.edges, props.nodes)
+    // 更新位置（对于静态布局，立即更新一次）
+    if (props.layout !== 'force') {
+      if (nodeSelection) {
+        updateNodePositions(nodeSelection, props.nodes, containerWidth / 2, containerHeight / 2, focusedNode)
+      }
+      if (linkSelection) {
+        updateEdgePositions(linkSelection, props.edges, props.nodes)
+      }
     }
   }
 }
@@ -207,6 +260,7 @@ onUnmounted(() => {
     svg.selectAll('*').remove()
   }
 })
+
 </script>
 
 <style scoped>

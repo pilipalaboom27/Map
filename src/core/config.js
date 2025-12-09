@@ -6,25 +6,25 @@
 export const graphConfig = {
   // 颜色配置
   colors: {
-    node: 'rgb(95, 219, 111)',
-    edge: '#475569',
-    text: '#ffffff', // 未展开节点颜色
-    textExpanded: 'rgb(95, 219, 111)', // 已展开节点颜色（绿色）
-    textHover: 'rgb(95, 219, 111)',
+    node: '#06b6d4', // Cyber Cyan
+    edge: 'rgba(6, 182, 212, 0.3)', // 青色微光
+    text: '#e2e8f0', // Slate 200
+    textExpanded: '#06b6d4', 
+    textHover: '#8b5cf6', // Violet
     background: 'transparent',
-    border: '#2e2e2e'
+    border: 'rgba(6, 182, 212, 0.4)'
   },
 
   // 节点配置
   node: {
-    fontSize: 20,
-    fontSizeFocused: 28, // 聚焦节点字体大小
-    fontSizeHover: 22,
-    fontWeight: 700,
-    minWidth: 100,
-    maxWidth: 250,
-    height: 60,
-    padding: 20,
+    fontSize: 16, // 字体大小
+    fontSizeFocused: 24, // 聚焦字体大小
+    fontSizeHover: 18,
+    fontWeight: 600, // 增加字重，提高辨识度
+    minWidth: 120,
+    maxWidth: 300,
+    height: 48,
+    padding: 16,
     marker: {
       fontSize: 12,
       offsetX: 8,
@@ -34,10 +34,10 @@ export const graphConfig = {
 
   // 边（连接线）配置
   edge: {
-    strokeWidth: 2,
-    strokeOpacity: 0.7,
+    strokeWidth: 1.5, // 变细
+    strokeOpacity: 0.6,
     strokeOpacityHover: 1,
-    strokeWidthHover: 3
+    strokeWidthHover: 2.5
   },
 
   // 布局配置
