@@ -144,6 +144,181 @@ export const preloadKnowledge = async (topic, existingKnowledge, path = []) => {
   }
 }
 
+/**
+ * 生成 Python 应用案例代码
+ * @param {string} topic - 节点主题
+ * @param {Object} context - 节点上下文（summary, concepts）
+ * @returns {Promise<Object>} 生成的代码
+ */
+export const generateCodeExample = async (topic, context) => {
+  try {
+    const cfg = getMergedApiConfig()
+    if (!cfg.url) {
+      throw new Error('API URL 未配置')
+    }
+
+    if (!topic) {
+      throw new Error('主题不能为空')
+    }
+
+    const requestBody = {
+      topic: topic,
+      context: context || {},
+      model: cfg.model,
+      temperature: cfg.temperature,
+      max_tokens: cfg.maxTokens
+    }
+
+    // 如果用户提供了API Key，传递给后端
+    if (cfg.apiKey) {
+      requestBody.api_key = cfg.apiKey
+    }
+
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+
+    // 构建 API URL（后端路由是 /api/generate-code-example）
+    let apiUrl = cfg.url
+    if (apiUrl.includes('/api/generate')) {
+      apiUrl = apiUrl.replace('/api/generate', '/api/generate-code-example')
+    } else if (apiUrl.includes('/generate')) {
+      apiUrl = apiUrl.replace('/generate', '/generate-code-example')
+    } else if (apiUrl.endsWith('/api')) {
+      apiUrl = apiUrl + '/generate-code-example'
+    } else {
+      // 如果 URL 格式不标准，尝试添加 /api/generate-code-example
+      const baseUrl = apiUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '')
+      apiUrl = baseUrl + '/api/generate-code-example'
+    }
+
+    logger.debug('代码生成请求:', {
+      topic,
+      hasContext: !!context,
+      conceptsCount: context?.concepts?.length || 0
+    })
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(cfg.timeout || 30000)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      logger.error('代码生成请求失败:', errorData)
+      throw new Error(errorData.error || `API请求失败: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    if (data.content) {
+      logger.debug('代码生成响应成功')
+      return {
+        content: data.content,
+        model: data.model || cfg.model
+      }
+    } else {
+      logger.error('服务器返回格式错误：缺少content字段')
+      throw new Error('服务器返回格式错误：缺少content字段')
+    }
+  } catch (error) {
+    logger.error('代码生成调用失败:', error)
+    throw error
+  }
+}
+
+/**
+ * AI 深度追问
+ * @param {string} topic - 节点主题
+ * @param {Object} context - 节点上下文（summary, concepts）
+ * @param {string} question - 用户问题
+ * @param {Array} conversationHistory - 对话历史（可选）
+ * @returns {Promise<Object>} AI 响应
+ */
+export const askAI = async (topic, context, question, conversationHistory = []) => {
+  try {
+    const cfg = getMergedApiConfig()
+    if (!cfg.url) {
+      throw new Error('API URL 未配置')
+    }
+
+    if (!topic || !question) {
+      throw new Error('主题和问题不能为空')
+    }
+
+    const requestBody = {
+      topic: topic,
+      context: context || {},
+      question: question,
+      conversation_history: conversationHistory,
+      model: cfg.model,
+      temperature: cfg.temperature,
+      max_tokens: cfg.maxTokens
+    }
+
+    // 如果用户提供了API Key，传递给后端
+    if (cfg.apiKey) {
+      requestBody.api_key = cfg.apiKey
+    }
+
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+
+    // 构建 API URL（后端路由是 /api/ask）
+    let apiUrl = cfg.url
+    if (apiUrl.includes('/api/generate')) {
+      apiUrl = apiUrl.replace('/api/generate', '/api/ask')
+    } else if (apiUrl.includes('/generate')) {
+      apiUrl = apiUrl.replace('/generate', '/ask')
+    } else if (apiUrl.endsWith('/api')) {
+      apiUrl = apiUrl + '/ask'
+    } else {
+      // 如果 URL 格式不标准，尝试添加 /api/ask
+      const baseUrl = apiUrl.replace(/\/api\/.*$/, '').replace(/\/$/, '')
+      apiUrl = baseUrl + '/api/ask'
+    }
+
+    logger.debug('AI 追问请求:', {
+      topic,
+      question: question.substring(0, 50) + '...',
+      historyLength: conversationHistory.length
+    })
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(cfg.timeout || 30000)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      logger.error('AI 追问请求失败:', errorData)
+      throw new Error(errorData.error || `API请求失败: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    
+    if (data.content) {
+      logger.debug('AI 追问响应成功')
+      return {
+        content: data.content,
+        model: data.model || cfg.model,
+        usage: data.usage || {}
+      }
+    } else {
+      logger.error('服务器返回格式错误：缺少content字段')
+      throw new Error('服务器返回格式错误：缺少content字段')
+    }
+  } catch (error) {
+    logger.error('AI 追问调用失败:', error)
+    throw error
+  }
+}
+
 // 健康检查
 export const healthCheck = async () => {
   try {

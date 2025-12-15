@@ -1,37 +1,74 @@
 <template>
-  <div class="config-sidebar">
-    <div class="sidebar-header">参数设置</div>
-    <n-form label-placement="top" :model="form" class="form">
-      <n-form-item label="模型">
-        <n-select
-          v-model:value="form.model"
-          :options="modelOptions"
-          placeholder="选择模型"
-          filterable
-          clearable
-        />
-      </n-form-item>
-      <n-form-item label="API Key">
-        <n-input v-model:value="form.apiKey" type="password" show-password-on="click" placeholder="可选，使用自己的API Key" />
-      </n-form-item>
-      <n-form-item label="temperature (0-1)">
-        <n-input-number v-model:value="form.temperature" :min="0" :max="1" :step="0.1" style="width: 100%;  " />
-      </n-form-item>
-      <n-form-item label="max_tokens">
-        <n-input-number v-model:value="form.maxTokens" :min="1" :step="100" style="width: 100%;" />
-      </n-form-item>
-      <div class="actions">
-        <n-button type="default" @click="resetToDefault">重置</n-button>
-        <n-button type="primary" @click="handleSave">保存</n-button>
+  <!-- 遮罩层 -->
+  <div 
+    class="panel-overlay" 
+    v-if="!isCollapsed"
+    @click="toggleCollapse"
+  ></div>
+
+  <div class="config-sidebar" :class="{ collapsed: isCollapsed }">
+    <div class="sidebar-header" @click="isCollapsed ? toggleCollapse() : null" :title="isCollapsed ? '系统参数配置' : ''">
+      <div class="header-title">
+        <span class="icon">⚙</span>
+        <span v-if="!isCollapsed">系统参数配置</span>
       </div>
-    </n-form>
+      <div class="close-btn" v-if="!isCollapsed" @click.stop="toggleCollapse" title="关闭">×</div>
+    </div>
+    
+    <div class="sidebar-content" v-if="!isCollapsed">
+      <n-form label-placement="top" :model="form" class="cyber-form">
+        <n-form-item label="核心模型">
+          <n-select
+            v-model:value="form.model"
+            :options="modelOptions"
+            placeholder="选择AI核心..."
+            filterable
+            clearable
+            class="cyber-select"
+          />
+        </n-form-item>
+        <n-form-item label="访问密钥 (API Key)">
+          <n-input 
+            v-model:value="form.apiKey" 
+            type="password" 
+            show-password-on="click" 
+            placeholder="输入密钥..." 
+            class="cyber-input"
+          />
+        </n-form-item>
+        <div class="row">
+          <n-form-item label="温度 (随机性)" class="col">
+            <n-input-number 
+              v-model:value="form.temperature" 
+              :min="0" :max="1" :step="0.1" 
+              class="cyber-input"
+            />
+          </n-form-item>
+          <n-form-item label="最大Token" class="col">
+            <n-input-number 
+              v-model:value="form.maxTokens" 
+              :min="1" :step="100" 
+              class="cyber-input"
+            />
+          </n-form-item>
+        </div>
+        
+        <div class="actions">
+          <button class="cyber-btn default" @click="resetToDefault">重置</button>
+          <button class="cyber-btn primary" @click="handleSave">保存配置</button>
+        </div>
+      </n-form>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
-import { NForm, NFormItem, NInput, NInputNumber, NSelect, NButton } from 'naive-ui'
+import { reactive, ref } from 'vue'
+import { NForm, NFormItem, NInput, NInputNumber, NSelect } from 'naive-ui'
 import { loadUserConfig, saveUserConfig } from '@/services/api/config.js'
+
+const isCollapsed = ref(true) // 默认折叠
+const toggleCollapse = () => isCollapsed.value = !isCollapsed.value
 
 const modelOptions = [
   { label: 'deepseek-chat', value: 'deepseek-chat' },
@@ -85,70 +122,299 @@ const resetToDefault = () => {
 </script>
 
 <style scoped>
+/* 遮罩层 */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .config-sidebar {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 260px;
-  padding: 12px;
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid #7bda97;
-  box-shadow: none;
+  right: 80px; /* 在 DataTableSidebar 左侧，48px + 8px 间距 */
+  bottom: 24px;
+  width: 360px;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-left: 2px solid var(--primary-color);
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+  
+  /* 切角设计 */
+  clip-path: polygon(
+    0 0, 
+    100% 0, 
+    100% calc(100% - 20px), 
+    calc(100% - 20px) 100%, 
+    0 100%
+  );
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  opacity: 1;
+  max-height: 650px;
+  z-index: 50;
+}
+
+/* 展开时居中显示 */
+.config-sidebar:not(.collapsed) {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + 24px); /* 避开顶部 Header */
+  transform: translate(-50%, -50%);
+  right: auto;
+  bottom: auto;
+  width: 500px;
+  max-height: calc(80vh - 64px); /* 预留顶部空间 */
+  z-index: 1000;
+  background: rgba(2, 6, 23, 0.95);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  clip-path: none;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.config-sidebar.collapsed {
+  width: 48px;
+  height: 48px;
+  max-height: 48px;
+  border-left: 1px solid var(--border-color);
+  border-radius: 4px;
+  clip-path: none;
+  transform: none;
 }
 
 .sidebar-header {
-  font-size: 16px;
+  padding: 12px 20px;
+  background: rgba(6, 182, 212, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.config-sidebar:not(.collapsed) .sidebar-header {
+  height: 48px;
+  padding: 0 24px;
+  background: rgba(6, 182, 212, 0.15);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: default;
+}
+
+.config-sidebar.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  border-bottom: none;
+  height: 100%;
+  width: 100%;
+  background: rgba(6, 182, 212, 0.2);
+}
+
+.config-sidebar.collapsed .sidebar-header:hover {
+  background: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+  transform: scale(1.05);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-family);
   font-weight: 700;
-  margin-bottom: 12px;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+.config-sidebar:not(.collapsed) .header-title {
+  font-size: 16px;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(6, 182, 212, 0.2);
   color: #ffffff;
-}
-.form :deep(.n-form-item-label__text) {
-  color: #ffffff;
+  transform: scale(1.1);
 }
 
-.form :deep(.n-input),
-.form :deep(.n-input__input-el),
-.form :deep(.n-input__input),
-.form :deep(.n-input-number),
-.form :deep(.n-input__state-border),
-.form :deep(.n-base-selection),
-.form :deep(.n-base-selection-label) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: #b8b8b8 !important;
+.config-sidebar.collapsed .header-title {
+  gap: 0;
 }
 
-/* 下拉弹层文字颜色 */
-.form :deep(.n-base-select-option__content),
-.form :deep(.n-base-selection-overlay__wrapper),
-.form :deep(.n-base-select-menu),
-.form :deep(.n-base-select-menu .n-base-select-option__label) {
-  color: #b8b8b8 !important;
+.config-sidebar.collapsed .header-title .icon {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.5));
 }
 
-/* 占位符颜色 */
-.form :deep(.n-input__input-el::placeholder),
-.form :deep(.n-base-selection-placeholder) {
-  color: #b8b8b8 !important;
+.config-sidebar.collapsed .sidebar-header:hover .icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
 }
 
+.sidebar-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Form Styles */
+.cyber-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 表单标签样式 - 使用多重选择器和 !important 确保生效 */
+.cyber-form :deep(.n-form-item-label),
+.cyber-form :deep(.n-form-item-label__text) {
+  color: #e0f7ff !important; /* 非常亮的浅青色，接近白色 */
+  font-family: var(--font-family) !important; /* 使用全局字体 */
+  font-size: 13px !important; /* 从 11px 增加到 13px */
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6), 0 0 3px rgba(255, 255, 255, 0.8) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  padding: 5px 10px !important; /* 增加内边距 */
+  border-radius: 2px !important;
+  display: inline-block !important;
+  margin-bottom: 8px !important; /* 增加下边距 */
+}
+
+/* 自定义输入框样式 */
+.cyber-input, .cyber-select {
+  font-family: var(--font-family); /* 使用全局字体 */
+}
+
+.cyber-form :deep(.n-input),
+.cyber-form :deep(.n-base-selection) {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important; /* 直角 */
+}
+
+.cyber-form :deep(.n-input:hover),
+.cyber-form :deep(.n-base-selection:hover),
+.cyber-form :deep(.n-input--focus),
+.cyber-form :deep(.n-base-selection--active) {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 5px rgba(6, 182, 212, 0.2) !important;
+}
+
+.cyber-form :deep(.n-input__input-el),
+.cyber-form :deep(.n-base-selection-label) {
+  color: var(--text-primary) !important;
+  font-size: 14px !important; /* 从 12px 增加到 14px */
+  padding: 8px 12px !important; /* 增加内边距 */
+}
+
+.cyber-form :deep(.n-input),
+.cyber-form :deep(.n-base-selection),
+.cyber-form :deep(.n-input-number) {
+  min-height: 40px !important; /* 增加输入框高度 */
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.col {
+  flex: 1;
+}
+
+/* Cyber Buttons */
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
-/* 重置按钮文字颜色 */
-.actions :deep(.n-button--default-type),
-.actions :deep(.n-button--default-type .n-button__content),
-.actions :deep(.n-button--default-type:hover),
-.actions :deep(.n-button--default-type:hover .n-button__content) {
-  color: #ffffff !important;
+.cyber-btn {
+  height: 38px; /* 从 32px 增加到 38px */
+  padding: 0 20px; /* 从 16px 增加到 20px */
+  font-family: var(--font-family); /* 使用全局字体 */
+  font-size: 13px; /* 从 12px 增加到 13px */
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  font-weight: 600; /* 增加字重 */
+}
+
+.cyber-btn.default {
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+}
+
+.cyber-btn.default:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.cyber-btn.primary {
+  background: var(--primary-color);
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.cyber-btn.primary:hover {
+  background: #22d3ee;
+  transform: translateY(-1px);
 }
 </style>
 

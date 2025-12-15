@@ -1,87 +1,292 @@
 <template>
-  <div class="info-panel">
-    <n-grid cols="3" :x-gap="20" :y-gap="20">
-      <n-grid-item>
-        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
-          <template #header>
-            <h4 class="card-title">探索流程</h4>
-          </template>
-          <p class="card-content">
-            输入主题生成核心节点，点击节点展开其子节点和所有父节点。点击的节点会自动居中显示，已展开的节点会变为绿色。支持径向和层次两种布局模式，逐层构建知识网络。
-          </p>
-        </n-card>
-      </n-grid-item>
-      <n-grid-item>
-        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
-          <template #header>
-            <h4 class="card-title">操作技巧</h4>
-          </template>
-          <ul class="card-content">
-            <li>左键点击空白区域可平移画布，滚轮缩放视图</li>
-            <li>悬停节点显示知识卡片，查看节点摘要信息</li>
-            <li>右侧配置面板可切换模型（deepseek/doubao/qwen）和调整参数</li>
-            <li>顶部可切换径向布局和层次布局，适应不同探索需求</li>
-          </ul>
-        </n-card>
-      </n-grid-item>
-      <n-grid-item>
-        <n-card :bordered="false" :shadow="'small'" size="small" class="info-card">
-          <template #header>
-            <h4 class="card-title">灵感提示</h4>
-          </template>
-          <p class="card-content">
-            系统会自动识别基础知识并提示无需再拆分。已展开的节点显示为绿色，聚焦节点会居中放大显示。可以切换不同模型来获得不同的知识分解视角，打造个性化的学习路径。
-          </p>
-        </n-card>
-      </n-grid-item>
-    </n-grid>
+  <!-- 右下角图标按钮 -->
+  <div 
+    class="info-panel-icon-btn" 
+    :class="{ hidden: !isMinimized }"
+    @click="toggleMinimize"
+    title="使用指南"
+  >
+    <span class="icon">📖</span>
+  </div>
+
+  <!-- 遮罩层 -->
+  <div 
+    class="panel-overlay" 
+    v-if="!isMinimized"
+    @click="toggleMinimize"
+  ></div>
+
+  <!-- 展开的面板 -->
+  <div class="info-panel" :class="{ minimized: isMinimized }" v-if="!isMinimized">
+    <div class="panel-header">
+      <div class="header-status">
+        <div class="status-light"></div>
+        <span>使用指南</span>
+      </div>
+      <div class="close-btn" @click.stop="toggleMinimize" title="关闭">×</div>
+    </div>
+    
+    <div class="panel-content">
+        <div class="log-grid">
+          <div class="log-column">
+            <h4 class="column-title">
+              <span class="icon">➜</span> 探索流程
+            </h4>
+            <div class="terminal-text">
+              <p>> 输入指令: 设定核心探索目标。</p>
+              <p>> 节点交互: 点击展开子节点/父节点。</p>
+              <p>> 自动聚焦: 视觉中心自动锁定。</p>
+              <p>> 布局模式: 径向 / 层级自适应切换。</p>
+            </div>
+          </div>
+          
+          <div class="log-column">
+            <h4 class="column-title">
+              <span class="icon">➜</span> 操作手册
+            </h4>
+            <div class="terminal-text">
+              <p>> 导航: 左键拖拽 | 滚轮缩放</p>
+              <p>> 信息: 悬停节点查看数据流。</p>
+              <p>> 配置: 右侧面板调整核心参数。</p>
+              <p>> 快捷键: 空格=重置 | +/-=缩放</p>
+            </div>
+          </div>
+          
+          <div class="log-column">
+            <h4 class="column-title">
+              <span class="icon">➜</span> 系统提示
+            </h4>
+            <div class="terminal-text">
+              <p>> AI核心: 自动检测知识边界。</p>
+              <p>> 状态: <span class="green">绿色</span>=已展开 | <span class="cyan">青色</span>=当前聚焦</p>
+              <p>> 优化建议: 切换模型以获得多维视角。</p>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
 <script setup>
-import { NCard, NGrid, NGridItem } from 'naive-ui'
+import { ref } from 'vue'
+
+const isMinimized = ref(true) // 默认关闭
+const toggleMinimize = () => isMinimized.value = !isMinimized.value
 </script>
 
 <style scoped>
-.info-panel {
-  background-color: var(--card-bg);
-  padding: 24px 40px;
-  box-shadow: 0 -1px 0 var(--border-color);
-  border-top: 1px solid var(--border-color);
+/* 右下角图标按钮 */
+.info-panel-icon-btn {
+  position: absolute;
+  right: 136px; /* 在 ConfigSidebar 左侧，80px + 48px + 8px */
+  bottom: 24px;
+  width: 48px;
+  height: 48px;
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
 }
 
-.info-card {
-  transition: all 0.3s ease;
-  background-color: var(--bg-color) !important;
+.info-panel-icon-btn:hover {
+  background: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+  transform: scale(1.05);
 }
 
-.info-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-  border-color: var(--primary-color) !important;
+.info-panel-icon-btn .icon {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.5));
 }
-.card-content {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-primary);
+
+.info-panel-icon-btn:hover .icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
 }
-.card-title {
+
+.info-panel-icon-btn.hidden {
+  display: none;
+}
+
+/* 遮罩层 */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 展开的面板 */
+.info-panel:not(.minimized) {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + 24px); /* 避开顶部 Header */
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 1000px;
+  background: rgba(2, 6, 23, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  max-height: calc(80vh - 64px); /* 预留顶部空间 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.panel-header {
+  height: 48px;
+  background: rgba(6, 182, 212, 0.15);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family);
   font-size: 16px;
-  font-weight: 600;
-  margin-left: 0;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 1px;
 }
 
-:deep(.n-card-header) {
-  padding-bottom: 10px;
+.close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
 }
 
-:deep(.n-card-body) {
-  padding-top: 0;
-  padding-bottom: 12px;
+.close-btn:hover {
+  background: rgba(6, 182, 212, 0.2);
+  color: #ffffff;
+  transform: scale(1.1);
 }
 
-:deep(.n-typography-list-item) {
-  margin-bottom: 5px;
+.status-light {
+  width: 6px;
+  height: 6px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  box-shadow: 0 0 5px var(--primary-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.panel-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.log-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.column-title {
+  font-family: var(--font-family); /* 使用全局字体 */
+  font-size: 13px; /* 从 12px 增加到 13px */
+  color: var(--secondary-color);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px dashed rgba(139, 92, 246, 0.3);
+  padding-bottom: 4px;
+}
+
+.terminal-text {
+  font-family: var(--font-family); /* 使用全局字体 */
+  font-size: 12px; /* 从 11px 增加到 12px */
+  line-height: 1.9; /* 从 1.8 增加到 1.9，增加行距 */
+  color: var(--text-secondary);
+}
+
+.terminal-text p {
+  margin: 0;
+  position: relative;
+  padding-left: 10px;
+}
+
+.terminal-text p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 2px;
+  height: 2px;
+  background: var(--text-muted);
+}
+
+.green { color: #10b981; }
+.cyan { color: #06b6d4; }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .log-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .info-panel {
+    width: 100%;
+    clip-path: none;
+    border-radius: 12px 12px 0 0;
+  }
 }
 </style>

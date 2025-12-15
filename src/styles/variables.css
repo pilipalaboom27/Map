@@ -1,27 +1,32 @@
-/* 全局CSS变量定义 - 黑色背景白色字体 */
+/* 全局CSS变量定义 - Deep Space Hologram Theme */
 :root {
-  /* 主色调 */
-  --primary-color: rgb(95, 219, 111);
-  --secondary-color: rgb(0, 255, 76);
-  --accent-color: rgba(236, 72, 153, 1);
-  --highlight-color: rgba(245, 158, 11, 1);
-  --input-bg: #272727;
-  /* 中性色 - 黑色背景 */
-  --bg-color: #000000;
-  --canvas-bg: #000000;
-  --card-bg: rgb(0, 0, 0);
-  --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --text-muted: #ffffff;
-  --test-control: #272727;
+  /* 核心色板 - Cyber Neon */
+  --primary-color: #06b6d4; /* Cyan 500 - 核心数据/操作 */
+  --primary-glow: rgba(6, 182, 212, 0.5);
+  --secondary-color: #8b5cf6; /* Violet 500 - 强调/高亮 */
+  --secondary-glow: rgba(139, 92, 246, 0.5);
+  --accent-color: #f472b6; /* Pink 400 - 警告/特殊 */
   
-  /* 边框和阴影 - 100%透明度 */
-  --border-color: #2e2e2e;
-  --border-hover: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 1), 0 2px 4px -1px rgba(0, 0, 0, 1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 1), 0 4px 6px -2px rgba(0, 0, 0, 1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 1), 0 10px 10px -5px rgba(0, 0, 0, 1);
+  /* 背景色体系 - 宇宙深空 */
+  --bg-color: #020617; /* Slate 950 - 极黑 */
+  --canvas-bg: transparent; /* 画布透明，透出背景 */
+  --card-bg: rgba(2, 6, 23, 0.7); /* 深空黑半透明 */
+  
+  /* 文字 - HUD 终端风格 */
+  --text-primary: #e2e8f0; /* Slate 200 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  --text-muted: #475569; /* Slate 600 */
+  --text-glow: 0 0 10px rgba(6, 182, 212, 0.3);
+  
+  /* 边框和HUD线条 */
+  --border-color: rgba(6, 182, 212, 0.2); /* 暗青色细线 */
+  --border-active: rgba(6, 182, 212, 0.6); /* 亮青色 */
+  --glass-border: 1px solid rgba(6, 182, 212, 0.15);
+  
+  /* 阴影与光效 */
+  --shadow-sm: 0 0 10px rgba(6, 182, 212, 0.1);
+  --shadow-md: 0 0 20px rgba(6, 182, 212, 0.15);
+  --neon-glow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-glow);
   
   /* 尺寸 */
   --spacing-xs: 4px;
@@ -30,41 +35,27 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   
-  /* 圆角 - 直角边框 */
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-full: 0;
+  /* 形状 - 切角设计 */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px; /* 较小的圆角，保持机械感 */
   
-  /* 过渡 */
-  --transition-fast: 150ms ease-in-out;
-  --transition-normal: 300ms ease-in-out;
-  --transition-slow: 500ms ease-in-out;
+  /* 特效 */
+  --backdrop-blur: blur(4px);
+  --scanline: linear-gradient(transparent 50%, rgba(6, 182, 212, 0.02) 50%);
   
-  /* 字体 - 现代美观的字体栈，支持中英文 */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-md: 16px;
-  --font-size-lg: 20px;
-  --font-size-xl: 24px;
-  --font-size-2xl: 28px;
+  /* 字体 - 现代科技感字体栈 */
+  /* 首选 Inter (通用现代), 其次 Microsoft YaHei (中文适配), 再次 JetBrains Mono (代码部分) */
+  --font-family: 'Inter', system-ui, -apple-system, 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 专用等宽字体变量 */
   
-  /* 层级 */
-  --z-index-base: 1;
-  --z-index-card: 10;
-  --z-index-modal: 100;
-  --z-index-overlay: 1000;
-  
-  /* 状态颜色 - 100%透明度 */
-  --success-color: rgba(16, 185, 129, 1);
-  --warning-color: rgba(245, 158, 11, 1);
-  --error-color: rgba(239, 68, 68, 1);
-  --info-color: rgba(99, 102, 241, 1);
-  
-  /* 图表颜色 - 100%透明度 */
-  --graph-node-color: var(--primary-color);
-  --graph-edge-color: rgba(71, 85, 105, 1);
-  --graph-label-color: var(--text-primary);
-  --graph-label-bg: rgb(105, 161, 130);
+  /* 图表颜色 */
+  --graph-node-color: #06b6d4;
+  --graph-edge-color: rgba(6, 182, 212, 0.3);
+  --graph-label-color: #e2e8f0;
+  --graph-label-bg: rgba(2, 6, 23, 0.8);
+
+  /* 动画 */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -1,5 +1,6 @@
 from backend.app.routes.knowledge_routes import knowledge_bp
 from backend.app.routes.health_routes import health_bp
+from backend.app.routes.ai_routes import ai_bp
 
 def register_routes(app):
     """
@@ -10,3 +11,4 @@ def register_routes(app):
     """
     app.register_blueprint(knowledge_bp)
     app.register_blueprint(health_bp)
+    app.register_blueprint(ai_bp)
