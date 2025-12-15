@@ -1,14 +1,21 @@
 <template>
+  <!-- 遮罩层 -->
+  <div 
+    class="panel-overlay" 
+    v-if="!isCollapsed"
+    @click="toggleCollapse"
+  ></div>
+
   <div class="config-sidebar" :class="{ collapsed: isCollapsed }">
-    <div class="sidebar-header" @click="toggleCollapse">
+    <div class="sidebar-header" @click="isCollapsed ? toggleCollapse() : null" :title="isCollapsed ? '系统参数配置' : ''">
       <div class="header-title">
         <span class="icon">⚙</span>
-        <span>系统参数配置</span>
+        <span v-if="!isCollapsed">系统参数配置</span>
       </div>
-      <div class="collapse-icon">{{ isCollapsed ? '+' : '-' }}</div>
+      <div class="close-btn" v-if="!isCollapsed" @click.stop="toggleCollapse" title="关闭">×</div>
     </div>
     
-    <div class="sidebar-content">
+    <div class="sidebar-content" v-if="!isCollapsed">
       <n-form label-placement="top" :model="form" class="cyber-form">
         <n-form-item label="核心模型">
           <n-select
@@ -60,7 +67,7 @@ import { reactive, ref } from 'vue'
 import { NForm, NFormItem, NInput, NInputNumber, NSelect } from 'naive-ui'
 import { loadUserConfig, saveUserConfig } from '@/services/api/config.js'
 
-const isCollapsed = ref(false)
+const isCollapsed = ref(true) // 默认折叠
 const toggleCollapse = () => isCollapsed.value = !isCollapsed.value
 
 const modelOptions = [
@@ -115,15 +122,33 @@ const resetToDefault = () => {
 </script>
 
 <style scoped>
+/* 遮罩层 */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .config-sidebar {
   position: absolute;
-  top: 140px;
-  right: 24px;
-  width: 360px; /* 从 300px 增大到 360px */
+  right: 80px; /* 在 DataTableSidebar 左侧，48px + 8px 间距 */
+  bottom: 24px;
+  width: 360px;
   background: rgba(2, 6, 23, 0.85);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
-  border-left: 2px solid var(--primary-color); /* 左侧强调线 */
+  border-left: 2px solid var(--primary-color);
   box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
   
   /* 切角设计 */
@@ -137,13 +162,50 @@ const resetToDefault = () => {
   
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  max-height: 650px; /* 从 600px 增加到 650px */
+  max-height: 650px;
+  z-index: 50;
+}
+
+/* 展开时居中显示 */
+.config-sidebar:not(.collapsed) {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + 24px); /* 避开顶部 Header */
+  transform: translate(-50%, -50%);
+  right: auto;
+  bottom: auto;
+  width: 500px;
+  max-height: calc(80vh - 64px); /* 预留顶部空间 */
+  z-index: 1000;
+  background: rgba(2, 6, 23, 0.95);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  clip-path: none;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .config-sidebar.collapsed {
-  max-height: 52px; /* 从 48px 增加到 52px */
-  width: 240px; /* 从 200px 增加到 240px */
-  border-left-color: var(--text-muted);
+  width: 48px;
+  height: 48px;
+  max-height: 48px;
+  border-left: 1px solid var(--border-color);
+  border-radius: 4px;
+  clip-path: none;
+  transform: none;
 }
 
 .sidebar-header {
@@ -154,21 +216,94 @@ const resetToDefault = () => {
   align-items: center;
   cursor: pointer;
   border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.config-sidebar:not(.collapsed) .sidebar-header {
+  height: 48px;
+  padding: 0 24px;
+  background: rgba(6, 182, 212, 0.15);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: default;
+}
+
+.config-sidebar.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  border-bottom: none;
+  height: 100%;
+  width: 100%;
+  background: rgba(6, 182, 212, 0.2);
+}
+
+.config-sidebar.collapsed .sidebar-header:hover {
+  background: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+  transform: scale(1.05);
 }
 
 .header-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-family); /* 使用全局字体 */
+  font-family: var(--font-family);
   font-weight: 700;
   color: var(--primary-color);
   letter-spacing: 1px;
-  font-size: 14px; /* 增加标题字号 */
+  font-size: 14px;
+}
+
+.config-sidebar:not(.collapsed) .header-title {
+  font-size: 16px;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(6, 182, 212, 0.2);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.config-sidebar.collapsed .header-title {
+  gap: 0;
+}
+
+.config-sidebar.collapsed .header-title .icon {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.5));
+}
+
+.config-sidebar.collapsed .sidebar-header:hover .icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
 }
 
 .sidebar-content {
-  padding: 20px;
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 /* Form Styles */

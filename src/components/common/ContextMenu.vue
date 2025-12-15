@@ -50,6 +50,20 @@ const handleClickOutside = (e) => {
   }
 }
 
+// 处理右键点击外部关闭（延迟执行，避免与显示菜单的事件冲突）
+let contextMenuTimeout = null
+const handleContextMenuOutside = (e) => {
+  // 延迟检查，避免与显示菜单的事件冲突
+  if (contextMenuTimeout) {
+    clearTimeout(contextMenuTimeout)
+  }
+  contextMenuTimeout = setTimeout(() => {
+    if (props.visible && !e.target.closest('.context-menu')) {
+      emit('update:visible', false)
+    }
+  }, 100)
+}
+
 const handleItemClick = (item) => {
   if (item.disabled || item.type === 'divider') return
   emit('select', item)
@@ -58,12 +72,15 @@ const handleItemClick = (item) => {
 
 onMounted(() => {
   window.addEventListener('click', handleClickOutside)
-  window.addEventListener('contextmenu', handleClickOutside) // 右键点击其他地方也关闭
+  window.addEventListener('contextmenu', handleContextMenuOutside) // 右键点击其他地方也关闭
 })
 
 onUnmounted(() => {
   window.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('contextmenu', handleClickOutside)
+  window.removeEventListener('contextmenu', handleContextMenuOutside)
+  if (contextMenuTimeout) {
+    clearTimeout(contextMenuTimeout)
+  }
 })
 </script>
 
@@ -149,4 +166,6 @@ onUnmounted(() => {
   transform: scale(0.95);
 }
 </style>
+
+
 

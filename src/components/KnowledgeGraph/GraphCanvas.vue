@@ -17,22 +17,42 @@
       @select="handleMenuSelect"
     />
 
+    <!-- 节点详情对话框 -->
+    <NodeDetailDialog
+      v-model:visible="detailDialog.visible"
+      :node="detailDialog.node"
+    />
+
+    <!-- AI 追问对话框 -->
+    <AIDialog
+      v-model:visible="aiDialog.visible"
+      :node="aiDialog.node"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
 import { useGraphStore } from '@/stores/graphStore'
+import { useAIPanelStore } from '@/stores/aiPanelStore'
 import { useLogger } from '@/core/logger.js'
+import { useNodeExpansion } from '@/composables/useNodeExpansion.js'
 import D3Graph from '../D3Graph.vue'
 import ContextMenu from '../common/ContextMenu.vue'
+import NodeDetailDialog from '../common/NodeDetailDialog.vue'
+import AIDialog from '../common/AIDialog.vue'
 
 // ========== Props & Emits ==========
-const emit = defineEmits(['node-click'])
+const emit = defineEmits(['node-click', 'view-details'])
 
 // ========== Store & Logger ==========
 const store = useGraphStore()
+const aiPanelStore = useAIPanelStore()
 const logger = useLogger('GraphCanvas')
+
+// ========== Node Expansion ==========
+const { expandNode } = useNodeExpansion(store)
 
 // ========== Context Menu State ==========
 const contextMenu = reactive({
@@ -40,6 +60,18 @@ const contextMenu = reactive({
   position: { x: 0, y: 0 },
   items: [],
   targetNode: null
+})
+
+// ========== Detail Dialog State ==========
+const detailDialog = reactive({
+  visible: false,
+  node: null
+})
+
+// ========== AI Dialog State ==========
+const aiDialog = reactive({
+  visible: false,
+  node: null
 })
 
 
@@ -62,20 +94,81 @@ function handleD3NodeClick(nodeData) {
  * 处理节点右键菜单
  */
 function handleNodeContextMenu(event, nodeData) {
-  const node = store.nodes.find(n => n.id === nodeData.id)
-  if (!node) return
+  logger.debug('收到右键菜单事件:', { event, nodeData })
+  
+  // 阻止默认右键菜单
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // 尝试从 store 中查找节点，如果找不到则使用传入的 nodeData
+  let node = null
+  if (nodeData && nodeData.id) {
+    node = store.nodes.find(n => n.id === nodeData.id)
+    if (!node) {
+      // 如果 store 中找不到，可能节点刚添加，使用传入的数据
+      node = nodeData
+      logger.debug('节点未在 store 中找到，使用传入数据:', nodeData)
+    }
+  }
+  
+  if (!node || !node.id) {
+    logger.warn('无法处理右键菜单：节点数据无效', { nodeData, storeNodes: store.nodes.length })
+    return
+  }
+
+  logger.debug('处理节点右键菜单:', node.topic, 'ID:', node.id)
 
   contextMenu.targetNode = node
-  contextMenu.position = { x: event.clientX, y: event.clientY }
-  contextMenu.items = [
-    { label: 'AI 深度追问', icon: '🤖', action: 'ask-ai' },
-    { label: '查看详细信息', icon: 'ℹ️', action: 'details' },
-    { type: 'divider' },
-    { label: node.locked ? '解锁位置' : '锁定位置', icon: node.locked ? '🔓' : '🔒', action: 'toggle-lock' },
-    { type: 'divider' },
-    { label: '删除节点', icon: '🗑️', action: 'delete', disabled: node.id === 'root' } // 根节点不可删
-  ]
+  
+  // 获取鼠标位置，如果事件对象无效则使用默认位置
+  let menuX = 0
+  let menuY = 0
+  if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+    menuX = event.clientX
+    menuY = event.clientY
+  } else {
+    // 如果事件对象无效，尝试从鼠标位置获取
+    if (window.event && window.event.clientX) {
+      menuX = window.event.clientX
+      menuY = window.event.clientY
+    } else {
+      // 最后使用屏幕中心位置
+      menuX = window.innerWidth / 2
+      menuY = window.innerHeight / 2
+    }
+  }
+  
+  contextMenu.position = { 
+    x: menuX, 
+    y: menuY 
+  }
+  
+  // 构建菜单项，按优先级排序
+  const items = []
+  
+  // 1. 展开节点（如果未展开）
+  if (!node.expanded && !node.expanding) {
+    items.push({ label: '展开节点', icon: '📂', action: 'expand-node' })
+  }
+  
+  // 2. 查看详细介绍
+  items.push({ label: '查看详细介绍', icon: '📖', action: 'view-details' })
+  
+  // 3. AI 深度追问
+  items.push({ label: 'AI 深度追问', icon: '🤖', action: 'ask-ai' })
+  
+  // 4. 分隔线
+  items.push({ type: 'divider' })
+  
+  // 5. 删除节点
+  items.push({ label: '删除节点', icon: '🗑️', action: 'delete', disabled: node.id === 'root' })
+  
+  contextMenu.items = items
   contextMenu.visible = true
+  
+  logger.debug('右键菜单已显示，节点:', node.topic, '菜单项数:', items.length, '位置:', contextMenu.position)
 }
 
 /**
@@ -101,32 +194,34 @@ function handleCanvasRightClick(event) {
  */
 function handleMenuSelect(item) {
   const node = contextMenu.targetNode
+  if (!node) return
   
   switch (item.action) {
+    case 'expand-node':
+      // 展开节点
+      expandNode(node).catch(error => {
+        logger.error('展开节点失败:', error)
+        alert('展开节点失败：' + error.message)
+      })
+      break
+    case 'view-details':
+      // 打开详情对话框
+      detailDialog.node = node
+      detailDialog.visible = true
+      emit('view-details', node)
+      break
     case 'ask-ai':
-      alert(`正在针对 "${node.topic}" 进行 AI 深度追问... (功能开发中)`)
+      // 打开 AI 追问侧栏
+      aiPanelStore.open(node)
+      logger.debug('打开 AI 追问侧栏:', node.topic)
       break
     case 'details':
-      emit('node-click', node) // 触发点击相同的逻辑，打开详情
-      break
-    case 'toggle-lock':
-      if (node) {
-        node.locked = !node.locked
-        // 如果解锁，且当前是力导向布局，需要手动释放 fx/fy
-        if (!node.locked) {
-          node.fx = null
-          node.fy = null
-        } else {
-          node.fx = node.x
-          node.fy = node.y
-        }
-        // 触发视图更新 (如果是在 force 布局下，模拟器会自动处理位置，但我们需要通知 store 或 强制刷新)
-        // 这里简化处理，如果是锁定，D3 force 会自动尊重 fx/fy
-      }
+      // 保留旧的 details action 以兼容
+      emit('node-click', node)
       break
     case 'delete':
       if (confirm(`确定要删除 "${node.topic}" 及其子节点吗？`)) {
-        store.removeNode(node.id)
+        store.deleteNode(node.id)
       }
       break
   }

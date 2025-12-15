@@ -64,6 +64,170 @@ class PromptService:
         except Exception as e:
             logger.error(f"Error generating knowledge prompt: {str(e)}", exc_info=True)
             raise
+    
+    @staticmethod
+    def generate_ai_question_prompt(topic, context=None, question=None, conversation_history=None, model=None):
+        """
+        生成用于 AI 深度追问的提示
+        
+        Args:
+            topic (str): 节点主题
+            context (dict, optional): 节点上下文（包含 summary 和 concepts）
+            question (str): 用户问题
+            conversation_history (list, optional): 对话历史
+            model (str, optional): 使用的模型名称
+            
+        Returns:
+            str: 生成的提示
+        """
+        try:
+            model_info = f"（当前使用的模型：{model}）" if model else ""
+            
+            # 构建上下文信息
+            context_text = ""
+            if context:
+                summary = context.get('summary', '')
+                concepts = context.get('concepts', [])
+                
+                if summary:
+                    context_text += f"【主题概述】\n{summary}\n\n"
+                
+                if concepts and len(concepts) > 0:
+                    context_text += "【核心概念】\n"
+                    for idx, concept in enumerate(concepts, 1):
+                        name = concept.get('name', '')
+                        desc = concept.get('description', '')
+                        context_text += f"{idx}. {name}"
+                        if desc:
+                            context_text += f": {desc}"
+                        context_text += "\n"
+                    context_text += "\n"
+            
+            # 构建对话历史
+            history_text = ""
+            if conversation_history and len(conversation_history) > 0:
+                history_text = "【对话历史】\n"
+                for msg in conversation_history[-5:]:  # 只保留最近5轮对话
+                    role = msg.get('role', '')
+                    content = msg.get('content', '')
+                    if role == 'user':
+                        history_text += f"用户: {content}\n"
+                    elif role == 'assistant':
+                        history_text += f"AI: {content}\n"
+                history_text += "\n"
+            
+            # 构建完整提示
+            prompt = (
+                f"你是知识图谱助手{model_info}，专门帮助用户深入理解知识图谱中的概念。\n\n"
+                f"【当前主题】\n{topic}\n\n"
+            )
+            
+            if context_text:
+                prompt += context_text
+            
+            if history_text:
+                prompt += history_text
+            
+            prompt += (
+                "【回答要求】\n"
+                "1. 基于提供的主题和上下文信息回答问题\n"
+                "2. 如果对话历史存在，请保持回答的连贯性，参考之前的对话内容\n"
+                "3. 回答要准确、详细，但不要超出主题范围\n"
+                "4. 如果问题涉及概念之间的关系，请结合上下文中的概念列表进行说明\n"
+                "5. 使用清晰的结构和适当的例子来帮助理解\n"
+                "6. 如果问题无法基于当前上下文回答，请礼貌地说明\n\n"
+                f"【用户问题】\n{question}\n\n"
+                "请基于以上信息回答用户的问题："
+            )
+            
+            logger.debug(f"Generated AI question prompt for topic: {topic}, question length: {len(question) if question else 0}")
+            return prompt
+            
+        except Exception as e:
+            logger.error(f"Error generating AI question prompt: {str(e)}", exc_info=True)
+            raise
+    
+    @staticmethod
+    def generate_code_example_prompt(topic, context=None, model=None):
+        """
+        生成用于生成 Python 应用案例代码的提示
+        
+        Args:
+            topic (str): 节点主题
+            context (dict, optional): 节点上下文（包含 summary 和 concepts）
+            model (str, optional): 使用的模型名称
+            
+        Returns:
+            str: 生成的提示
+        """
+        try:
+            model_info = f"（当前使用的模型：{model}）" if model else ""
+            
+            # 构建上下文信息
+            context_text = ""
+            if context:
+                summary = context.get('summary', '')
+                concepts = context.get('concepts', [])
+                
+                if summary:
+                    context_text += f"【主题概述】\n{summary}\n\n"
+                
+                if concepts and len(concepts) > 0:
+                    context_text += "【核心概念】\n"
+                    for idx, concept in enumerate(concepts, 1):
+                        name = concept.get('name', '')
+                        desc = concept.get('description', '')
+                        context_text += f"{idx}. {name}"
+                        if desc:
+                            context_text += f": {desc}"
+                        context_text += "\n"
+                    context_text += "\n"
+            
+            # 构建完整提示
+            prompt = (
+                f"你是Python编程专家{model_info}。请为「{topic}」生成一个简单、易懂、具有代表性的Python使用案例代码。\n"
+                f"要求代码简洁明了，初学者能轻松理解，不需要是完整的实际应用项目，只需要展示「{topic}」的基本使用方法即可。\n\n"
+            )
+            
+            if context_text:
+                prompt += context_text
+            
+            prompt += (
+                f"【代码要求】\n"
+                f"1. 代码必须简单易懂，初学者能轻松理解\n"
+                f"2. 代码要简洁，不要过于复杂，控制在50行以内\n"
+                f"3. 代码要具有代表性，能清晰展示「{topic}」的核心概念和使用方法\n"
+                f"4. 不需要是完整的实际应用项目，只需要简单的使用案例即可\n"
+                f"5. 使用基础的Python语法和常用库（如需要，优先使用标准库）\n"
+                f"6. 包含简单的示例数据，使代码可以直接运行并看到结果\n"
+                f"7. 代码要有清晰的注释，解释关键步骤，帮助初学者理解\n"
+                f"8. 如果提供了概念列表，代码应简单展示这些概念的基本用法\n"
+                f"9. 避免使用高级特性或复杂的编程模式\n"
+                f"10. 代码应该是一个简洁的、有代表性的示例，能帮助初学者理解主题\n\n"
+                f"【代码结构要求】\n"
+                f"- 代码开头必须包含一个多行注释块（使用三引号），介绍这个使用案例：\n"
+                f"  * 说明这个案例是做什么的\n"
+                f"  * 展示了「{topic}」的什么概念或用法\n"
+                f"  * 这个案例能帮助理解什么\n"
+                f"  * 如何运行这个代码\n"
+                f"- 代码中的函数或类要有文档字符串（docstring），说明其作用\n"
+                f"- 关键步骤要有行内注释，解释在做什么\n\n"
+                f"【输出要求】\n"
+                f"- 只输出Python代码，不要任何其他说明文字\n"
+                f"- 不要使用markdown代码块标记（如 ```python）\n"
+                f"- 代码应该可以直接复制运行\n"
+                f"- 确保代码语法正确，可以执行\n"
+                f"- 保持代码简洁，避免冗余\n"
+                f"- 代码开头必须包含介绍性注释\n\n"
+                f"现在为「{topic}」生成一个简单、易懂、具有代表性的Python使用案例："
+            )
+            
+            logger.debug(f"Generated code example prompt for topic: {topic}, has concepts: {bool(context and context.get('concepts'))}")
+            return prompt
+            
+        except Exception as e:
+            logger.error(f"Error generating code example prompt: {str(e)}", exc_info=True)
+            raise
 
 # 创建提示服务实例
 prompt_service = PromptService()

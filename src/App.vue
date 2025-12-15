@@ -1,23 +1,29 @@
 <template>
-  <div class="knowledge-map-app">
-    <!-- 动态星空背景层 -->
-    <div class="stars-bg"></div>
-    <div class="grid-bg"></div>
-    
-    <Header 
-      @add-topic="addTopic"
-      @clear-canvas="clearCanvas"
-    />
-    
-    <div class="canvas-container">
-      <GraphCanvas 
-        ref="graphCanvas"
-        @node-click="handleNodeClick"
+  <n-config-provider>
+    <div class="knowledge-map-app">
+      <!-- 动态星空背景层 -->
+      <div class="stars-bg"></div>
+      <div class="grid-bg"></div>
+      
+      <Header 
+        @add-topic="addTopic"
+        @clear-canvas="clearCanvas"
       />
-      <ConfigSidebar />
-    </div>
-    
-    <InfoPanel />
+      
+      <div class="canvas-container">
+        <DataTableSidebar />
+        <GraphCanvas 
+          ref="graphCanvas"
+          @node-click="handleNodeClick"
+        />
+        <ConfigSidebar />
+      </div>
+      
+      <InfoPanel />
+      
+      <!-- AI 追问悬浮按钮和侧栏 -->
+      <AIFloatingButton />
+      <AIPanel />
     
     <div id="loadingOverlay" class="loading-overlay" :class="{ hidden: !loading }">
       <div class="loading-card">
@@ -43,16 +49,21 @@
       :entity="currentEditingEntity"
       @save="handleEntitySave"
     />
-  </div>
+    </div>
+  </n-config-provider>
 </template>
 
 <script setup>
 import { ref, watch, onUnmounted } from 'vue'
+import { NConfigProvider } from 'naive-ui'
 import Header from './components/layout/Header.vue'
 import GraphCanvas from './components/KnowledgeGraph/GraphCanvas.vue'
 import InfoPanel from './components/layout/InfoPanel.vue'
 import EntityEditor from './components/EntityEditor.vue'
 import ConfigSidebar from './components/ConfigSidebar.vue'
+import DataTableSidebar from './components/layout/DataTableSidebar.vue'
+import AIFloatingButton from './components/common/AIFloatingButton.vue'
+import AIPanel from './components/common/AIPanel.vue'
 import { useGraphStore } from './stores/graphStore'
 import { useNodeOperations } from './composables/useNodeOperations.js'
 import { useNodeExpansion } from './composables/useNodeExpansion.js'
@@ -106,15 +117,10 @@ onUnmounted(() => {
 })
 
 /**
- * 处理节点点击
+ * 处理节点点击（只聚焦，不展开）
  */
 const handleNodeClick = (node) => {
-  handleNodeClickOperation(node, (nodeToExpand) => {
-    expandNode(nodeToExpand).catch(error => {
-      logger.error('展开节点失败:', error)
-      alert('展开节点失败：' + error.message)
-    })
-  })
+  handleNodeClickOperation(node)
 }
 </script>
 

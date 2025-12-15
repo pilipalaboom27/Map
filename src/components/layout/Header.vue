@@ -70,9 +70,7 @@ const addTopic = () => {
 }
 
 const clearCanvas = () => {
-  if (confirm('确定要清空画板吗？')) {
-    emit('clear-canvas')
-  }
+  emit('clear-canvas')
 }
 
 const handleExport = async (type) => {
@@ -93,10 +91,12 @@ const handleExport = async (type) => {
 .header-container {
   position: absolute;
   top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 1300px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: none;
+  padding: 0 24px;
+  box-sizing: border-box;
   z-index: 100;
 }
 

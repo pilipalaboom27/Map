@@ -40,25 +40,16 @@ export class GraphService {
   }
 
   /**
-   * 处理节点点击
+   * 处理节点点击（只聚焦，不展开）
    * @param {Object} node - 节点对象
-   * @param {Function} onExpand - 展开回调
    */
-  handleNodeClick(node, onExpand) {
+  handleNodeClick(node) {
     logger.debug('处理节点点击:', node.topic, 'ID:', node.id)
     logger.debug('当前聚焦节点:', this.store.focusedNode?.id)
     
-    if (this.store.focusedNode && node.id === this.store.focusedNode.id) {
-      // 如果点击的是当前聚焦节点，展开节点
-      logger.debug('点击的是聚焦节点，开始展开')
-      if (onExpand) {
-        onExpand(node)
-      }
-    } else {
-      // 否则聚焦节点
-      this.store.setFocusedNode(node)
-      logger.info('切换聚焦节点:', node.topic)
-    }
+    // 只聚焦节点，不展开
+    this.store.setFocusedNode(node)
+    logger.info('切换聚焦节点:', node.topic)
   }
 
   /**

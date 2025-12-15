@@ -40,12 +40,11 @@ export function useNodeOperations(store) {
   }
 
   /**
-   * 处理节点点击
+   * 处理节点点击（只聚焦，不展开）
    * @param {Object} node - 节点对象
-   * @param {Function} onExpand - 展开回调
    */
-  const handleNodeClick = (node, onExpand) => {
-    graphService.handleNodeClick(node, onExpand)
+  const handleNodeClick = (node) => {
+    graphService.handleNodeClick(node)
   }
 
   /**
